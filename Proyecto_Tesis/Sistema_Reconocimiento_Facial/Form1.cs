@@ -21,7 +21,6 @@ namespace Sistema_Reconocimiento_Facial
 {
     public partial class Form1 : Form
     {
-        //Estas variables serán utilizadas para cargar los datos de entrenamiento y sus respectivas etiquetas (+1, -1)
         List<Mat> dataTrain;
         Matrix<float> matrizMat;
 
@@ -63,7 +62,6 @@ namespace Sistema_Reconocimiento_Facial
                 model.TermCriteria = new MCvTermCriteria(1000, 1e-6);
                 model.Train(dataTrainMat, Emgu.CV.ML.MlEnum.DataLayoutType.RowSample, labelTrain); //<==== BUG posible solucion http://answers.opencv.org/question/93012/svm-training-data-error/
                 model.Save("svm.txt");
-                MessageBox.Show("SVM está entrenada.");
 
                 testIt();
             }
@@ -133,15 +131,14 @@ namespace Sistema_Reconocimiento_Facial
                             //TODO: ajustar rostro en función del ojo derecho
 
                             //Conversión de tipo Mat a Image<Brg, Byte>
-                            Image<Bgr, Byte> image = imgGray.ToImage<Bgr, Byte>();
+                            Image<Gray, Byte> image = imgGray.ToImage<Gray, Byte>();
                             image.ROI = Rectangle.Empty;
                             //Estableciendo tamaño de región de interés
                             Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height);
                             image.ROI = roi;
-                            Image<Bgr, Byte> imgResize = image.Copy(roi);
+                            Image<Gray, Byte> imgResize = image.Copy(roi);
                             imgResize = imgResize.Resize(168, 192, Inter.Linear, false);
-                            pbImageRecortada.Image = imgResize.Bitmap;//Mostrando Imagen recortada
-                            pbImagenOriginal.Image = imgGray.Bitmap;//Mostrando Imagen original
+                            imgResize._EqualizeHist();
                             imgMat = imgResize.Mat;
                         }
                         //Agregando una imagen de tipo Mat a la lista
@@ -179,7 +176,7 @@ namespace Sistema_Reconocimiento_Facial
                 {
                     List<float> descriptors = new List<float>();
 
-                    Image<Bgr, Byte> imgByte = (dataTrain.ElementAt(y)).ToImage<Bgr, Byte>(); //<---------EXCEPTION
+                    Image<Gray, Byte> imgByte = (dataTrain.ElementAt(y)).ToImage<Gray, Byte>(); //<---------EXCEPTION
 
                     descriptor = desHog.Compute(imgByte, new Size(168, 192), new Size(0, 0), null); //Se supone de debería retornar un vector de float vector<float>
                     descriptors = descriptor.OfType<float>().ToList();//debo convertir float[] to List<float>
@@ -226,16 +223,38 @@ namespace Sistema_Reconocimiento_Facial
         {
             try
             {
-                //TODO: cargar imagen para proceso de testeo
+                
                 List<Mat> dataTest = new List<Mat>();
-
-                IImage img = new Mat(@"C:\Users\DaniloDaniel\Documents\Visual Studio 2015\Projects\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\Aaron_Peirsol_0001.jpg", ImreadModes.Color);
+                //TODO: Se debe aplicar el proceso de detección de un rostro en la imagen
+                //y a esto ROI aplicar el preprocesado
+                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-2.jpg", ImreadModes.Color);
                 UMat imgGray = new UMat();
                 CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                Image<Gray, Byte> img2 = imgGray.ToImage<Gray, Byte>();
-                img2 = img2.Resize(168, 192, Inter.Linear);
-                Mat imgMat = new Mat(new Size(168, 192), DepthType.Cv32F, 1);
-                img2.Mat.CopyTo(imgMat);
+                
+                //Detección de rostros en la una imagen, debería encontrar un sólo rostro por imagen
+                foreach (Rectangle face in faceDetector.DetectMultiScale(imgGray, 1.1, 10, new Size(20, 20), Size.Empty))
+                {
+                    CvInvoke.Rectangle(img, face, new MCvScalar(255, 255, 255));
+
+                    //A continuación sigue el proceso de Preprocesado de la imagen
+                    //este consiste en los siguientes pasos: convertir escala de grises, recorte y escalado.
+                    //TODO: ajustar rostro en función del ojo derecho
+
+                    //Conversión de tipo Mat a Image<Brg, Byte>
+                    Image<Gray, Byte> img2 = imgGray.ToImage<Gray, Byte>();
+                    img2.ROI = Rectangle.Empty;
+                    //Estableciendo tamaño de región de interés
+                    Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height);
+                    img2.ROI = roi;
+                    Image<Gray, Byte> imgResize = img2.Copy(roi);
+                    imgResize = imgResize.Resize(168, 192, Inter.Linear, false);
+                    pbImageRecortada.Image = imgResize.Bitmap; //Imagen recortada
+                    imgResize._EqualizeHist();
+                    Mat imgMat = new Mat(new Size(168, 192), DepthType.Cv32F, 1);
+                    imgMat = imgResize.Mat;
+                    pbImagenOriginal.Image = img.Bitmap; //Imagen original
+                    pbImageEcualizada.Image = imgResize.Bitmap;//Imagen recortada ecualizada
+                }
                 dataTest.Add(imgMat);
 
                 //TODO: Instanciar un objeto de tipo HOG
@@ -250,7 +269,7 @@ namespace Sistema_Reconocimiento_Facial
                 {
                     List<float> descriptors = new List<float>();
 
-                    Image<Bgr, Byte> imgByte = (dataTest.ElementAt(y)).ToImage<Bgr, Byte>();
+                    Image<Gray, Byte> imgByte = (dataTest.ElementAt(y)).ToImage<Gray, Byte>();
 
                     descriptor = desHog.Compute(imgByte, new Size(168, 192), new Size(0, 0), null);
                     descriptors = descriptor.OfType<float>().ToList();
@@ -285,6 +304,5 @@ namespace Sistema_Reconocimiento_Facial
                 MessageBox.Show("Error: " + ex.Message, "Módulo .:. testIt");
             }
         }
-
     }
 }

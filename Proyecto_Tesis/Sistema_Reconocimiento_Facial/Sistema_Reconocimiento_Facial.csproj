@@ -129,9 +129,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="resources\data-test\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="haarcascade_eye.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -139,6 +137,12 @@
     <Content Include="haarcascade_frontalface_default.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="resources\data-test\test-1.jpg" />
+    <Content Include="resources\data-test\test-2.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\data-test\test-3.jpg" />
+    <Content Include="resources\data-test\test-4.jpg" />
     <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0001.jpg" />
     <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0002.jpg" />
     <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0003.jpg" />
