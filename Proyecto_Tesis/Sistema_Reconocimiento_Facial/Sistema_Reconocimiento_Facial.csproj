@@ -143,6 +143,9 @@
     </Content>
     <Content Include="resources\data-test\test-3.jpg" />
     <Content Include="resources\data-test\test-4.jpg" />
+    <Content Include="resources\data-test\test-5.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0001.jpg" />
     <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0002.jpg" />
     <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0003.jpg" />
@@ -156,6 +159,12 @@
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0001.jpg" />
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0002.jpg" />
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0003.jpg" />
+    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0001.jpg" />
+    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0002.jpg" />
+    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0003.jpg" />
+    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0004.jpg" />
+    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0005.jpg" />
+    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0006.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

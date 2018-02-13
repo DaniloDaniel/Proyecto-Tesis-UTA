@@ -137,7 +137,7 @@ namespace Sistema_Reconocimiento_Facial
                             Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height);
                             image.ROI = roi;
                             Image<Gray, Byte> imgResize = image.Copy(roi);
-                            imgResize = imgResize.Resize(168, 192, Inter.Linear, false);
+                            imgResize = imgResize.Resize(64, 64, Inter.Linear, false);
                             imgResize._EqualizeHist();
                             imgMat = imgResize.Mat;
                         }
@@ -159,7 +159,7 @@ namespace Sistema_Reconocimiento_Facial
 
         public HOGDescriptor hog()
         {
-            desHog = new HOGDescriptor(new Size(168, 192), new Size(8, 8), new Size(4, 4), new Size(8, 8), 9, 1, -1, 0.2, true);
+            desHog = new HOGDescriptor(new Size(64, 64), new Size(8, 8), new Size(4, 4), new Size(8, 8), 9, 1, -1, 0.2, true);
             //HOGDescriptor(Size winSize, Size blockSize, Size blockStride, Size cellSize, int nbins = 9, int derivAperture = 1, double winSigma = -1, double L2HysThreshold = 0.2, bool gammaCorrection = true);
             return desHog;
         }
@@ -176,9 +176,9 @@ namespace Sistema_Reconocimiento_Facial
                 {
                     List<float> descriptors = new List<float>();
 
-                    Image<Gray, Byte> imgByte = (dataTrain.ElementAt(y)).ToImage<Gray, Byte>(); //<---------EXCEPTION
+                    Image<Gray, Byte> imgByte = (dataTrain.ElementAt(y)).ToImage<Gray, Byte>();
 
-                    descriptor = desHog.Compute(imgByte, new Size(168, 192), new Size(0, 0), null); //Se supone de debería retornar un vector de float vector<float>
+                    descriptor = desHog.Compute(imgByte, new Size(64, 64), new Size(0, 0), null); //Se supone de debería retornar un vector de float vector<float>
                     descriptors = descriptor.OfType<float>().ToList();//debo convertir float[] to List<float>
                     dataTrainHOG.Add(descriptors);
                 }
@@ -225,14 +225,15 @@ namespace Sistema_Reconocimiento_Facial
             {
                 
                 List<Mat> dataTest = new List<Mat>();
+                CascadeClassifier faceDetectorTest = new CascadeClassifier("haarcascade_frontalface_default.xml");
                 //TODO: Se debe aplicar el proceso de detección de un rostro en la imagen
                 //y a esto ROI aplicar el preprocesado
-                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-2.jpg", ImreadModes.Color);
+                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-5.jpg", ImreadModes.Color);
                 UMat imgGray = new UMat();
                 CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
                 
                 //Detección de rostros en la una imagen, debería encontrar un sólo rostro por imagen
-                foreach (Rectangle face in faceDetector.DetectMultiScale(imgGray, 1.1, 10, new Size(20, 20), Size.Empty))
+                foreach (Rectangle face in faceDetectorTest.DetectMultiScale(imgGray, 1.1, 10, new Size(20, 20), Size.Empty))
                 {
                     CvInvoke.Rectangle(img, face, new MCvScalar(255, 255, 255));
 
@@ -241,24 +242,25 @@ namespace Sistema_Reconocimiento_Facial
                     //TODO: ajustar rostro en función del ojo derecho
 
                     //Conversión de tipo Mat a Image<Brg, Byte>
-                    Image<Gray, Byte> img2 = imgGray.ToImage<Gray, Byte>();
-                    img2.ROI = Rectangle.Empty;
+                    Image<Gray, Byte> imgTest = imgGray.ToImage<Gray, Byte>();
+                    imgTest.ROI = Rectangle.Empty;
                     //Estableciendo tamaño de región de interés
                     Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height);
-                    img2.ROI = roi;
-                    Image<Gray, Byte> imgResize = img2.Copy(roi);
-                    imgResize = imgResize.Resize(168, 192, Inter.Linear, false);
+                    imgTest.ROI = roi;
+                    Image<Gray, Byte> imgResize = imgTest.Copy(roi);
+                    imgResize = imgResize.Resize(64, 64, Inter.Linear, false);
                     pbImageRecortada.Image = imgResize.Bitmap; //Imagen recortada
                     imgResize._EqualizeHist();
-                    Mat imgMat = new Mat(new Size(168, 192), DepthType.Cv32F, 1);
-                    imgMat = imgResize.Mat;
+                    Mat imgMatTest = new Mat(new Size(64, 64), DepthType.Cv32F, 1);
+                    imgMatTest = imgResize.Mat;
                     pbImagenOriginal.Image = img.Bitmap; //Imagen original
                     pbImageEcualizada.Image = imgResize.Bitmap;//Imagen recortada ecualizada
+                    dataTest.Add(imgMatTest);
                 }
-                dataTest.Add(imgMat);
+                
 
                 //TODO: Instanciar un objeto de tipo HOG
-                HOGDescriptor testHog = new HOGDescriptor(new Size(168, 192), new Size(8, 8), new Size(4, 4), new Size(8, 8), 9, 1, -1, 0.2, true);
+                HOGDescriptor testHog = new HOGDescriptor(new Size(64, 64), new Size(8, 8), new Size(4, 4), new Size(8, 8), 9, 1, -1, 0.2, true);
 
 
                 //TODO: Calcular descriptor HOG de la imagen
@@ -271,7 +273,7 @@ namespace Sistema_Reconocimiento_Facial
 
                     Image<Gray, Byte> imgByte = (dataTest.ElementAt(y)).ToImage<Gray, Byte>();
 
-                    descriptor = desHog.Compute(imgByte, new Size(168, 192), new Size(0, 0), null);
+                    descriptor = testHog.Compute(imgByte, new Size(64, 64), new Size(0, 0), null);
                     descriptors = descriptor.OfType<float>().ToList();
                     dataTestHOG.Add(descriptors);
                 }
@@ -283,17 +285,17 @@ namespace Sistema_Reconocimiento_Facial
 
                 //TODO: Convertir Vector a Matrix
 
-                Matrix<float> matrizMat = new Matrix<float>(dataTestMat.Rows, dataTestMat.Cols, dataTestMat.NumberOfChannels);
+                Matrix<float> matrizMat2 = new Matrix<float>(dataTestMat.Rows, dataTestMat.Cols, dataTestMat.NumberOfChannels);
                 dataTestMat.CopyTo(matrizMat);
 
                 for (int i = 0; i < dataTestHOG.Count(); i++)
                 {
                     for (int j = 0; j < dataTestHOG[0].Count(); j++)
                     {
-                        matrizMat[i, j] = (float)dataTestHOG[i].ElementAt(j);
+                        matrizMat2[i, j] = (float)dataTestHOG[i].ElementAt(j);
                     }
                 }
-                matrizMat.Mat.CopyTo(dataTestMat);
+                matrizMat2.Mat.CopyTo(dataTestMat);
 
                 float result = model.Predict(dataTestMat);
                 MessageBox.Show(result.ToString());
