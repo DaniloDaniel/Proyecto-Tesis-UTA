@@ -121,15 +121,15 @@ namespace Sistema_Reconocimiento_Facial
                         IImage img = new Mat(file.FullName, ImreadModes.Color);
                         UMat imgGray = new UMat();
                         CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                        //Detección de rostros en la una imagen, debería encontrar un sólo rostro por imagen
+                        //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
                         foreach (Rectangle face in faceDetector.DetectMultiScale(imgGray, 1.1, 10, new Size(20, 20), Size.Empty))
                         {
                             CvInvoke.Rectangle(img, face, new MCvScalar(255, 255, 255));
 
                             //A continuación sigue el proceso de Preprocesado de la imagen
-                            //este consiste en los siguientes pasos: convertir escala de grises, recorte y escalado.
-                            //TODO: ajustar rostro en función del ojo derecho
-
+                            //este consiste en los siguientes pasos: convertir escala de grises, 
+                            // recorte, escalado y rotación de imagen (con base en los ojos).
+                            
                             //Conversión de tipo Mat a Image<Brg, Byte>
                             Image<Gray, Byte> image = imgGray.ToImage<Gray, Byte>();
                             image.ROI = Rectangle.Empty;
@@ -141,10 +141,10 @@ namespace Sistema_Reconocimiento_Facial
                             imgResize._EqualizeHist();
                             imgMat = imgResize.Mat;
                         }
-                        //Agregando una imagen de tipo Mat a la lista
-                        dataTrain.Add(imgMat);
                         //Etiquetando datos de entrada
                         labelTrain[imgCount, 0] = (int)classID;
+                        //Agregando una imagen de tipo Mat a la lista
+                        dataTrain.Add(imgMat);
                         imgCount++;
                     }
                 }
@@ -210,7 +210,6 @@ namespace Sistema_Reconocimiento_Facial
                     }
                 }
                 //Volcar los datos procesados al objeto dataTrainMat
-                //Comprobar que efectivamente se está copiando
                 matrizMat.Mat.CopyTo(dataTrainMat);
             }
             catch(Exception ex)
@@ -227,20 +226,22 @@ namespace Sistema_Reconocimiento_Facial
                 List<Mat> dataTest = new List<Mat>();
                 CascadeClassifier faceDetectorTest = new CascadeClassifier("haarcascade_frontalface_default.xml");
                 CascadeClassifier eyeDetectorTest = new CascadeClassifier("haarcascade_eye.xml");
-                //TODO: Se debe aplicar el proceso de detección de un rostro en la imagen
-                //y a esto ROI aplicar el preprocesado
+
                 IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-2.jpg", ImreadModes.Color);
                 UMat imgGray = new UMat();
                 CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
                 Image<Gray, Byte> imgRotate = imgGray.ToImage<Gray, Byte>();
-                //TODO: ajustar rostro en función del ojo derecho
+
+                //Fuente: http://blogs.interknowlogy.com/2013/10/27/emgucv-rotating-face-images-to-align-eyes/#comment-233480
                 Rectangle[] eyes = eyeDetectorTest.DetectMultiScale(img, 1.1, 10, new Size(20, 20));
                 //Rotar la imagen únicamente cuando se detectan ambos ojos
                 if(eyes.Count() == 2 )
                 {
                     var deltaY = (eyes[1].Y + eyes[1].Height / 2) - (eyes[0].Y + eyes[0].Height / 2);
                     var deltaX = (eyes[1].X + eyes[1].Width / 2) - (eyes[0].X + eyes[0].Width / 2);
-                    double degrees = Math.Atan2(deltaY, deltaX) * 180 / Math.PI;
+
+                    //El ángulo resultante está expresado en radianes, por lo que es necesaria una conversión a grados.
+                    double degrees = Math.Atan2(deltaY, deltaX) * 180 / Math.PI; 
                     if (Math.Abs(degrees) < 35)
                     {
                         imgRotate = imgRotate.Rotate(-degrees, new Gray(0));
