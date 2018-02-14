@@ -32,13 +32,16 @@
             this.pbImagenOriginal = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.pbImageEcualizada = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbImageRecortada)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbImageEcualizada)).BeginInit();
             this.SuspendLayout();
             // 
             // pbImageRecortada
             // 
-            this.pbImageRecortada.Location = new System.Drawing.Point(349, 64);
+            this.pbImageRecortada.Location = new System.Drawing.Point(282, 64);
             this.pbImageRecortada.Name = "pbImageRecortada";
             this.pbImageRecortada.Size = new System.Drawing.Size(168, 192);
             this.pbImageRecortada.TabIndex = 0;
@@ -64,17 +67,36 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(362, 270);
+            this.label2.Location = new System.Drawing.Point(295, 270);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(152, 13);
             this.label2.TabIndex = 3;
             this.label2.Text = "imagen Recortada 168x192 px";
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(456, 270);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(207, 13);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "histograma imagen ecualizado 168x192 px";
+            // 
+            // pbImageEcualizada
+            // 
+            this.pbImageEcualizada.Location = new System.Drawing.Point(468, 64);
+            this.pbImageEcualizada.Name = "pbImageEcualizada";
+            this.pbImageEcualizada.Size = new System.Drawing.Size(168, 192);
+            this.pbImageEcualizada.TabIndex = 4;
+            this.pbImageEcualizada.TabStop = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(635, 391);
+            this.ClientSize = new System.Drawing.Size(873, 391);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.pbImageEcualizada);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pbImagenOriginal);
@@ -83,6 +105,7 @@
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.pbImageRecortada)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbImageEcualizada)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -94,6 +117,8 @@
         private System.Windows.Forms.PictureBox pbImagenOriginal;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.PictureBox pbImageEcualizada;
     }
 }
 
