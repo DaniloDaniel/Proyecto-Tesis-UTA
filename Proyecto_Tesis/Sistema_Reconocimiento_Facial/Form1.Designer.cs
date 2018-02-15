@@ -33,10 +33,10 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.pbImageEcualizada = new System.Windows.Forms.PictureBox();
+            this.pbImageAlineada = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbImageRecortada)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbImageEcualizada)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbImageAlineada)).BeginInit();
             this.SuspendLayout();
             // 
             // pbImageRecortada
@@ -60,35 +60,35 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(61, 331);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(137, 13);
+            this.label1.Size = new System.Drawing.Size(162, 13);
             this.label1.TabIndex = 2;
-            this.label1.Text = "imagen Original 250x250 px";
+            this.label1.Text = "imagen Original Gray 250x250 px";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(295, 270);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(152, 13);
+            this.label2.Size = new System.Drawing.Size(140, 13);
             this.label2.TabIndex = 3;
-            this.label2.Text = "imagen Recortada 168x192 px";
+            this.label2.Text = "imagen Recortada 64x64 px";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(456, 270);
+            this.label3.Location = new System.Drawing.Point(497, 270);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(207, 13);
+            this.label3.Size = new System.Drawing.Size(85, 13);
             this.label3.TabIndex = 5;
-            this.label3.Text = "histograma imagen ecualizado 168x192 px";
+            this.label3.Text = "Imagen alineada";
             // 
-            // pbImageEcualizada
+            // pbImageAlineada
             // 
-            this.pbImageEcualizada.Location = new System.Drawing.Point(468, 64);
-            this.pbImageEcualizada.Name = "pbImageEcualizada";
-            this.pbImageEcualizada.Size = new System.Drawing.Size(168, 192);
-            this.pbImageEcualizada.TabIndex = 4;
-            this.pbImageEcualizada.TabStop = false;
+            this.pbImageAlineada.Location = new System.Drawing.Point(468, 64);
+            this.pbImageAlineada.Name = "pbImageAlineada";
+            this.pbImageAlineada.Size = new System.Drawing.Size(168, 192);
+            this.pbImageAlineada.TabIndex = 4;
+            this.pbImageAlineada.TabStop = false;
             // 
             // Form1
             // 
@@ -96,7 +96,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(873, 391);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.pbImageEcualizada);
+            this.Controls.Add(this.pbImageAlineada);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pbImagenOriginal);
@@ -105,7 +105,7 @@
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.pbImageRecortada)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbImageEcualizada)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbImageAlineada)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -118,7 +118,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.PictureBox pbImageEcualizada;
+        private System.Windows.Forms.PictureBox pbImageAlineada;
     }
 }
 
