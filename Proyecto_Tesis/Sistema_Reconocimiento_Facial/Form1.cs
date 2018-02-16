@@ -90,36 +90,25 @@ namespace Sistema_Reconocimiento_Facial
             return image;
         }
 
-        public void preProcessing(FileInfo[] files, int classID)
+        public void preProcessing(Image<Gray,Byte> frame, int classID)
         {
             Mat imgMat = null;
+            CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
             try
             {
-                // Iterar por carpeta, buscando imágenes
-                for (int i = 0; i < files.Length; i++)
-                {
-                    CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
-                    FileInfo file = files[i];
-                    IImage img = new Mat(file.FullName, ImreadModes.Color);
-                    UMat imgGray = new UMat();
-                    CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                    img = alignEyes(imgGray.ToImage<Gray, Byte>());
+                frame = alignEyes(frame);
                     //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
-                    foreach (Rectangle face in faceDetector.DetectMultiScale(img, 1.1, 10, new Size(20, 20), Size.Empty))
+                    foreach (Rectangle face in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
                     {
-                        CvInvoke.Rectangle(img, face, new MCvScalar(255, 255, 255));
-
+                        CvInvoke.Rectangle(frame, face, new MCvScalar(255, 255, 255));
                         //A continuación sigue el proceso de Preprocesado de la imagen
                         //este consiste en los siguientes pasos: convertir escala de grises, 
                         // recorte, escalado y rotación de imagen (con base en los ojos).
-
-                        //Conversión de tipo Mat a Image<Brg, Byte>
-                        Image<Gray, Byte> image = imgGray.ToImage<Gray, Byte>();
-                        image.ROI = Rectangle.Empty;
+                        frame.ROI = Rectangle.Empty;
                         //Estableciendo tamaño de región de interés
                         Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height); //Región de interés
-                        image.ROI = roi;
-                        Image<Gray, Byte> imgResize = image.Copy(roi); //Recorte de imagen (rostro)
+                        frame.ROI = roi;
+                        Image<Gray, Byte> imgResize = frame.Copy(roi); //Recorte de imagen (rostro)
                         imgResize = imgResize.Resize(64, 64, Inter.Linear, false); //Escalado de imagen 64x64 px.
                         imgResize._EqualizeHist(); //Ecualización de histograma de imagen.
                         imgMat = imgResize.Mat;
@@ -129,7 +118,7 @@ namespace Sistema_Reconocimiento_Facial
                     //Agregando una imagen de tipo Mat a la lista
                     dataTrain.Add(imgMat);
                     imgCount++;
-                }
+                
             }catch(Exception ex)
             {
                 MessageBox.Show("Error: " + ex.Message, "Módulo .:. preProcessing");
@@ -164,8 +153,17 @@ namespace Sistema_Reconocimiento_Facial
                     classID += 1;
                     // Clasificar la imágenes según su extensión (compresión de imagen).
                     FileInfo[] files = GetFilesByExtensions(classFolder, ".jpg", ".png").ToArray();
-                    //Todas las muestras deben ser preprocesadas.
-                    preProcessing(files, classID);
+
+                    // Iterar por carpeta, buscando imágenes
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        FileInfo file = files[i];
+                        IImage img = new Mat(file.FullName, ImreadModes.Color);
+                        UMat imgGray = new UMat();
+                        CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+                        //Todas las muestras deben ser preprocesadas.
+                        preProcessing(imgGray.ToImage<Gray,Byte>(), classID);
+                    }
                 }
             }
             catch (Exception ex)
@@ -260,7 +258,7 @@ namespace Sistema_Reconocimiento_Facial
                 CascadeClassifier faceDetectorTest = new CascadeClassifier(pathCascadeFace);
                 CascadeClassifier eyeDetectorTest = new CascadeClassifier(pathCascadeEye);
 
-                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-5.jpg", ImreadModes.Color);
+                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-3.jpg", ImreadModes.Color);
                 UMat imgGray = new UMat();
                 CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
                 img = alignEyes(imgGray.ToImage<Gray,Byte>());
@@ -292,8 +290,6 @@ namespace Sistema_Reconocimiento_Facial
                     pbImageAlineada.Image = img.Bitmap;//Imagen alineada en los ojos
                     dataTest.Add(imgMatTest);
                 }
-                
-
                 //TODO: Instanciar un objeto de tipo HOG
                 HOGDescriptor testHog = new HOGDescriptor(new Size(64, 64), new Size(8, 8), new Size(4, 4), new Size(8, 8), 9, 1, -1, 0.2, true);
 
@@ -340,6 +336,12 @@ namespace Sistema_Reconocimiento_Facial
             {
                 MessageBox.Show("Error: " + ex.Message, "Módulo .:. testIt");
             }
+        }
+
+        public void testIt(Image<Gray, Byte> frame)
+        {
+            frame = alignEyes(frame);
+            
         }
     }
 }
