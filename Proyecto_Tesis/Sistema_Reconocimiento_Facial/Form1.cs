@@ -48,9 +48,7 @@ namespace Sistema_Reconocimiento_Facial
 
                 //Test
                 IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-4.jpg", ImreadModes.Color);
-                UMat imgGray = new UMat();
-                CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                testIt(imgGray.ToImage<Gray, Byte>());
+                testIt(img);
                 //testIt();
             }
             catch (Exception ex)
@@ -255,15 +253,19 @@ namespace Sistema_Reconocimiento_Facial
             return model;
         }
 
-        public void testIt(Image<Gray, Byte> frame)//TODO: Problemas
+        public void testIt(IImage frame)
         {
+
             int sizeDescriptor;
             int countDescriptors;
             List<Mat> dataTest = new List<Mat>();
             List<List<float>>  dataTestHOG = new List<List<float>>();
+            UMat frameGray = new UMat();
+            CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
-            frame = alignEyes(frame);
-            Mat frameMat = preProcessing(frame);
+            Image<Gray, byte> frameOriginal = alignEyes(frameGray.ToImage<Gray, byte>());
+            Image<Gray,byte> frameFormat = alignEyes(frameGray.ToImage<Gray, byte>());
+            Mat frameMat = preProcessing(frameFormat);
             dataTest.Add(frameMat);
 
             calculateDescriptorsHOG(dataTest, ref dataTestHOG, out sizeDescriptor, out countDescriptors);
@@ -272,6 +274,12 @@ namespace Sistema_Reconocimiento_Facial
 
             float result = model.Predict(dataTestMat);
             Console.WriteLine("El sujeto corresponde a la clase: " + result.ToString());
+
+            var border = new Rectangle(0, 0, 200, 40);
+            frameOriginal.Draw(border, new Gray(0), -1);
+            frameOriginal.Draw(border, new Gray(0));
+            CvInvoke.PutText(frameOriginal, result.ToString(), new Point(10, border.Height - 10), FontFace.HersheySimplex, 1.0, new Bgr(Color.Blue).MCvScalar);
+            pbImagenOriginal.Image = frameOriginal.Bitmap;
         }
     }
 }
