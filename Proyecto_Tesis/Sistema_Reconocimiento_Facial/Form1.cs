@@ -45,7 +45,13 @@ namespace Sistema_Reconocimiento_Facial
                 dataTrainMat = new Mat(new Size(sizeDescriptor , countDescriptors), DepthType.Cv32F, 1); //	Mat(Size, DepthType, Int32)
                 convertVectorToMatrix(ref dataTrainMat, dataTrainHOG);
                 model = training(dataTrainMat, labelTrain);
-                testIt();
+
+                //Test
+                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-4.jpg", ImreadModes.Color);
+                UMat imgGray = new UMat();
+                CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+                testIt(imgGray.ToImage<Gray, Byte>());
+                //testIt();
             }
             catch (Exception ex)
             {
@@ -90,45 +96,38 @@ namespace Sistema_Reconocimiento_Facial
             return image;
         }
 
-        public void preProcessing(Image<Gray,Byte> frame, int classID)
+        public Mat preProcessing(Image<Gray,Byte> frame)
         {
             Mat imgMat = null;
             CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
             try
             {
                 frame = alignEyes(frame);
-                    //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
-                    foreach (Rectangle face in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
-                    {
-                        CvInvoke.Rectangle(frame, face, new MCvScalar(255, 255, 255));
-                        //A continuación sigue el proceso de Preprocesado de la imagen
-                        //este consiste en los siguientes pasos: convertir escala de grises, 
-                        // recorte, escalado y rotación de imagen (con base en los ojos).
-                        frame.ROI = Rectangle.Empty;
-                        //Estableciendo tamaño de región de interés
-                        Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height); //Región de interés
-                        frame.ROI = roi;
-                        Image<Gray, Byte> imgResize = frame.Copy(roi); //Recorte de imagen (rostro)
-                        imgResize = imgResize.Resize(64, 64, Inter.Linear, false); //Escalado de imagen 64x64 px.
-                        imgResize._EqualizeHist(); //Ecualización de histograma de imagen.
-                        imgMat = imgResize.Mat;
-                    }
-                    //Etiquetando datos de entrada
-                    labelTrain[imgCount, 0] = (int)classID;
-                    //Agregando una imagen de tipo Mat a la lista
-                    dataTrain.Add(imgMat);
-                    imgCount++;
-                
+                //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
+                foreach (Rectangle face in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
+                {
+                    CvInvoke.Rectangle(frame, face, new MCvScalar(255, 255, 255));
+                    //A continuación sigue el proceso de Preprocesado de la imagen
+                    //este consiste en los siguientes pasos: convertir escala de grises, 
+                    // recorte, escalado y rotación de imagen (con base en los ojos).
+                    frame.ROI = Rectangle.Empty;
+                    //Estableciendo tamaño de región de interés
+                    Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height); //Región de interés
+                    frame.ROI = roi;
+                    Image<Gray, Byte> imgResize = frame.Copy(roi); //Recorte de imagen (rostro)
+                    imgResize = imgResize.Resize(64, 64, Inter.Linear, false); //Escalado de imagen 64x64 px.
+                    imgResize._EqualizeHist(); //Ecualización de histograma de imagen.
+                    imgMat = imgResize.Mat;
+                }
             }catch(Exception ex)
             {
                 MessageBox.Show("Error: " + ex.Message, "Módulo .:. preProcessing");
             }
-            
+            return imgMat;
         }
 
         public void loadDatatraining(ref List<Mat> dataTrain, ref Matrix<int> labelTrain)
         {
-
             try
             {
                 dataTrain = new List<Mat>();
@@ -161,8 +160,14 @@ namespace Sistema_Reconocimiento_Facial
                         IImage img = new Mat(file.FullName, ImreadModes.Color);
                         UMat imgGray = new UMat();
                         CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+
                         //Todas las muestras deben ser preprocesadas.
-                        preProcessing(imgGray.ToImage<Gray,Byte>(), classID);
+                        Mat imgMat = preProcessing(imgGray.ToImage<Gray, Byte>());
+                        //Etiquetando datos de entrada
+                        labelTrain[imgCount, 0] = (int)classID;
+                        //Agregando una imagen de tipo Mat a la lista
+                        dataTrain.Add(imgMat);
+                        imgCount++;
                     }
                 }
             }
@@ -213,9 +218,9 @@ namespace Sistema_Reconocimiento_Facial
                 Matrix<float> matrizMat = new Matrix<float>(dataTrainMat.Rows, dataTrainMat.Cols, dataTrainMat.NumberOfChannels);
                 dataTrainMat.CopyTo(matrizMat);
 
-                for (int i = 0; i < this.countDescriptors; i++)
+                for (int i = 0; i < dataTrainHOG.Count(); i++) //Número de descriptores
                 {
-                    for (int j = 0; j < this.sizeDescriptor; j++)
+                    for (int j = 0; j < dataTrainHOG[0].Count(); j++) //Tamaño del descriptor
                     {
                         
                         matrizMat[i, j] = (float) dataTrainHOG[i].ElementAt(j);
@@ -250,98 +255,23 @@ namespace Sistema_Reconocimiento_Facial
             return model;
         }
 
-        public void testIt()
+        public void testIt(Image<Gray, Byte> frame)//TODO: Problemas
         {
-            try
-            {
-                List<Mat> dataTest = new List<Mat>();
-                CascadeClassifier faceDetectorTest = new CascadeClassifier(pathCascadeFace);
-                CascadeClassifier eyeDetectorTest = new CascadeClassifier(pathCascadeEye);
+            int sizeDescriptor;
+            int countDescriptors;
+            List<Mat> dataTest = new List<Mat>();
+            List<List<float>>  dataTestHOG = new List<List<float>>();
 
-                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-3.jpg", ImreadModes.Color);
-                UMat imgGray = new UMat();
-                CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                img = alignEyes(imgGray.ToImage<Gray,Byte>());
-                //Detección de rostros en la una imagen, debería encontrar un sólo rostro por imagen
-                foreach (Rectangle face in faceDetectorTest.DetectMultiScale(img, 1.1, 10, new Size(20, 20), Size.Empty))
-                {
-                    CvInvoke.Rectangle(img, face, new MCvScalar(255, 255, 255));
-
-                    //A continuación sigue el proceso de Preprocesado de la imagen
-                    //este consiste en los siguientes pasos: convertir escala de grises, recorte y escalado.
-                    
-                    //Conversión de tipo Mat a Image<Brg, Byte>
-                    Image<Gray, Byte> imgTest = imgGray.ToImage<Gray, Byte>();
-                    //TODO:Rotar tomando como base el ojo derecho
-                    imgTest.ROI = Rectangle.Empty;
-                    //Estableciendo tamaño de región de interés
-                    Rectangle roi = new Rectangle(face.X, face.Y, face.Width, face.Height);
-                    imgTest.ROI = roi;
-                    Image<Gray, Byte> imgResize = imgTest.Copy(roi);
-                    imgResize = imgResize.Resize(64, 64, Inter.Linear, false);
-                    pbImageRecortada.Image = imgResize.Bitmap; //Imagen recortada
-                    imgResize._EqualizeHist();
-                    
-                    
-                    Mat imgMatTest = new Mat(new Size(64, 64), DepthType.Cv32F, 1);
-                    imgMatTest = imgResize.Mat;
-                    pbImagenOriginal.Image = imgGray.Bitmap; //Imagen original
-                    pbImageRecortada.Image = imgResize.Bitmap; //Imagen Recortada
-                    pbImageAlineada.Image = img.Bitmap;//Imagen alineada en los ojos
-                    dataTest.Add(imgMatTest);
-                }
-                //TODO: Instanciar un objeto de tipo HOG
-                HOGDescriptor testHog = new HOGDescriptor(new Size(64, 64), new Size(8, 8), new Size(4, 4), new Size(8, 8), 9, 1, -1, 0.2, true);
-
-
-                //TODO: Calcular descriptor HOG de la imagen
-                List<List<float>> dataTestHOG = new List<List<float>>();
-                float[] descriptor;
-
-                for (int y = 0; y < dataTest.Count; y++) //Debería tener el valor de 1
-                {
-                    List<float> descriptors = new List<float>();
-
-                    Image<Gray, Byte> imgByte = (dataTest.ElementAt(y)).ToImage<Gray, Byte>();
-
-                    descriptor = testHog.Compute(imgByte, new Size(64, 64), new Size(0, 0), null);
-                    descriptors = descriptor.OfType<float>().ToList();
-                    dataTestHOG.Add(descriptors);
-                }
-                int descriptorSizeTest = dataTestHOG[0].Count();
-
-                //TODO: Definir objeto de tipo Mat con formato Cv32F
-                Mat dataTestMat = new Mat(new Size((int)dataTestHOG[0].Count(), dataTestHOG.Count()), DepthType.Cv32F, 1);
-
-
-                //TODO: Convertir Vector a Matrix
-
-                Matrix<float> matrizMat2 = new Matrix<float>(dataTestMat.Rows, dataTestMat.Cols, dataTestMat.NumberOfChannels);
-                dataTestMat.CopyTo(matrizMat2);
-
-                for (int i = 0; i < dataTestHOG.Count(); i++)
-                {
-                    for (int j = 0; j < dataTestHOG[0].Count(); j++)
-                    {
-                        matrizMat2[i, j] = (float)dataTestHOG[i].ElementAt(j);
-                    }
-                }
-                matrizMat2.Mat.CopyTo(dataTestMat);
-
-                float result = model.Predict(dataTestMat);
-                Console.WriteLine("El sujeto corresponde a la clase: "+result.ToString());
-            }
-
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error: " + ex.Message, "Módulo .:. testIt");
-            }
-        }
-
-        public void testIt(Image<Gray, Byte> frame)
-        {
             frame = alignEyes(frame);
-            
+            Mat frameMat = preProcessing(frame);
+            dataTest.Add(frameMat);
+
+            calculateDescriptorsHOG(dataTest, ref dataTestHOG, out sizeDescriptor, out countDescriptors);
+            Mat dataTestMat = new Mat(new Size(sizeDescriptor, countDescriptors), DepthType.Cv32F, 1); //	Mat(Size, DepthType, Int32)
+            convertVectorToMatrix(ref dataTestMat, dataTestHOG);
+
+            float result = model.Predict(dataTestMat);
+            Console.WriteLine("El sujeto corresponde a la clase: " + result.ToString());
         }
     }
 }
