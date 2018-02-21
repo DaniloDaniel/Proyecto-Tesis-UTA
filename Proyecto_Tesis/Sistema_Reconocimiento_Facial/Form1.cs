@@ -35,6 +35,9 @@ namespace Sistema_Reconocimiento_Facial
         private int countDescriptors; //Cantidad de descriptores (debe ser igual al número de muestras).
         private static int imgCount = 0; //Número de muestras.
 
+        private VideoCapture _capture = null;
+        private Mat _frame;
+
         public Form1()
         {
             InitializeComponent();
@@ -47,13 +50,37 @@ namespace Sistema_Reconocimiento_Facial
                 model = training(dataTrainMat, labelTrain);
 
                 //Test
-                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-4.jpg", ImreadModes.Color);
+                try
+                {
+                    //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
+                    //_capture = new VideoCapture();
+                    //_capture.ImageGrabbed += ProcessFrame;
+                    //_capture.Start();
+                }
+                catch (NullReferenceException excpt)
+                {
+                    MessageBox.Show(excpt.Message);
+                }
+                _frame = new Mat();
+
+                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\4-person.jpg", ImreadModes.Color);
                 testIt(img);
-                //testIt();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Eror: " + ex.Message, "Módulo .:. Form1 ");
+            }
+        }
+
+        private void ProcessFrame(object sender, EventArgs e)
+        {
+            if (_capture != null && _capture.Ptr != IntPtr.Zero)
+            {
+                _capture.Retrieve(_frame, 0);
+                pbImageRecortada.Image = _frame.Bitmap;
+                //TODO: Revisar si hay un rostro en el frame actual.
+
+                //testIt(_frame.ToImage<Bgr,byte>());
             }
         }
 
@@ -94,7 +121,26 @@ namespace Sistema_Reconocimiento_Facial
             return image;
         }
 
-        public Mat preProcessing(Image<Gray,Byte> frame)
+        public List<Face> detectFaces(Image<Gray, Byte> frame)
+        {
+            CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
+            List<Face> listFaces = new List<Face>();
+
+            foreach (Rectangle faceRec in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
+            {
+                CvInvoke.Rectangle(frame, faceRec, new MCvScalar(255, 255, 255));
+                frame.ROI = Rectangle.Empty;
+                //Estableciendo tamaño de región de interés
+                Rectangle roi = new Rectangle(faceRec.X, faceRec.Y, faceRec.Width, faceRec.Height); //Región de interés
+                frame.ROI = roi;
+                Image<Gray, Byte> faceRoi = frame.Copy(roi);
+                Face face = new Face(faceRoi,faceRec);
+                listFaces.Add(face);
+            }
+            return listFaces;
+        }
+
+        public Mat preProcessingDataTrain(Image<Gray,Byte> frame)
         {
             Mat imgMat = null;
             CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
@@ -122,6 +168,28 @@ namespace Sistema_Reconocimiento_Facial
                 MessageBox.Show("Error: " + ex.Message, "Módulo .:. preProcessing");
             }
             return imgMat;
+        }
+
+        public List<Mat> preProcessingDataTest(List<Face> facesDetected)
+        {
+            List<Mat> listImgMat = new List<Mat>();
+            try
+            {
+                
+                //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
+                foreach ( Face person in facesDetected)
+                {
+                    Image<Gray, Byte> faceAlign = alignEyes(person.FaceOnly);
+                    faceAlign = faceAlign.Resize(64, 64, Inter.Linear, false); //Escalado de imagen 64x64 px.
+                    faceAlign._EqualizeHist(); //Ecualización de histograma de imagen.
+                    listImgMat.Add(faceAlign.Mat);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Módulo .:. preProcessing");
+            }
+            return listImgMat;
         }
 
         public void loadDatatraining(ref List<Mat> dataTrain, ref Matrix<int> labelTrain)
@@ -160,7 +228,7 @@ namespace Sistema_Reconocimiento_Facial
                         CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
                         //Todas las muestras deben ser preprocesadas.
-                        Mat imgMat = preProcessing(imgGray.ToImage<Gray, Byte>());
+                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>());
                         //Etiquetando datos de entrada
                         labelTrain[imgCount, 0] = (int)classID;
                         //Agregando una imagen de tipo Mat a la lista
@@ -261,25 +329,29 @@ namespace Sistema_Reconocimiento_Facial
             List<Mat> dataTest = new List<Mat>();
             List<List<float>>  dataTestHOG = new List<List<float>>();
             UMat frameGray = new UMat();
+            List<Face> faceDetected = new List<Face>();
             CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
-            Image<Gray, byte> frameOriginal = alignEyes(frameGray.ToImage<Gray, byte>());
-            Image<Gray,byte> frameFormat = alignEyes(frameGray.ToImage<Gray, byte>());
-            Mat frameMat = preProcessing(frameFormat);
-            dataTest.Add(frameMat);
+            faceDetected = detectFaces(frameGray.ToImage<Gray,Byte>()); //Encuentra una lista de rostros hallados en el frame.
+            dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
 
             calculateDescriptorsHOG(dataTest, ref dataTestHOG, out sizeDescriptor, out countDescriptors);
             Mat dataTestMat = new Mat(new Size(sizeDescriptor, countDescriptors), DepthType.Cv32F, 1); //	Mat(Size, DepthType, Int32)
             convertVectorToMatrix(ref dataTestMat, dataTestHOG);
 
-            float result = model.Predict(dataTestMat);
-            Console.WriteLine("El sujeto corresponde a la clase: " + result.ToString());
+            for (int numPerson = 0; numPerson < faceDetected.Count(); numPerson++)
+            {
+                float result = model.Predict(dataTestMat.Row(numPerson));//Indicar la fila ha predecir
+                Console.WriteLine("El sujeto "+ numPerson + "corresponde a la clase: " + result.ToString());
+            }
+            
 
-            var border = new Rectangle(0, 0, 200, 40);
-            frameOriginal.Draw(border, new Gray(0), -1);
-            frameOriginal.Draw(border, new Gray(0));
-            CvInvoke.PutText(frameOriginal, result.ToString(), new Point(10, border.Height - 10), FontFace.HersheySimplex, 1.0, new Bgr(Color.Blue).MCvScalar);
-            pbImagenOriginal.Image = frameOriginal.Bitmap;
+            //var border = new Rectangle(0, 0, 200, 40);
+            //frameGray.Draw(border, new Gray(0), -1);
+            //frameOriginal.Draw(border, new Gray(0));
+            //CvInvoke.PutText(frameOriginal, result.ToString(), new Point(10, border.Height - 10), FontFace.HersheySimplex, 1.0, new Bgr(Color.Blue).MCvScalar);
+            pbImagenOriginal.Image = frameGray.Bitmap;
         }
+
     }
 }
