@@ -165,10 +165,27 @@
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0001.jpg" />
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0002.jpg" />
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0003.jpg" />
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0001.jpg" />
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0002.jpg" />
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0003.jpg" />
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0004.jpg" />
+    <Content Include="resources\data-train\Danilo_Daniel\20180222_001348.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\data-train\Danilo_Daniel\20180222_001352.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\data-train\Danilo_Daniel\20180222_001409.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0001.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0002.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0003.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0004.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0001.jpg" />
     <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0002.jpg" />
     <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0003.jpg" />
