@@ -141,6 +141,9 @@
     <Content Include="resources\data-test\4-person.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="resources\data-test\profesores-icci.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="resources\data-test\test-11.jpg" />
     <Content Include="resources\data-test\test-22.jpg" />
     <Content Include="resources\data-test\test-33.jpg" />
@@ -174,24 +177,15 @@
     <Content Include="resources\data-train\Danilo_Daniel\20180222_001409.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0001.jpg">
+    <Content Include="resources\data-train\Diego_Aracena\diego-aracena-01.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0002.jpg">
+    <Content Include="resources\data-train\Diego_Aracena\diego-aracena-02.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0003.jpg">
+    <Content Include="resources\data-train\Diego_Aracena\diego-aracena-03.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="resources\data-train\Yevgeny_Kafelnikov\Yevgeny_Kafelnikov_0004.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0001.jpg" />
-    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0002.jpg" />
-    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0003.jpg" />
-    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0004.jpg" />
-    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0005.jpg" />
-    <Content Include="resources\data-train\Zinedine_Zidane\Zinedine_Zidane_0006.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

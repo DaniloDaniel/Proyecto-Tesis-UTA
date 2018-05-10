@@ -11,10 +11,10 @@ namespace Sistema_Reconocimiento_Facial
 {
     public class Face
     {
+        private string _name;
+        private int _classId;
         private Image<Gray,Byte> _faceOnly;
         private Rectangle _roi;
-
-        
 
         public Face()
         {
@@ -24,6 +24,13 @@ namespace Sistema_Reconocimiento_Facial
         {
             _faceOnly = faceOnly;
             _roi = roi;
+        }
+
+        public Face(string name, int classId)
+        {
+            _name = name;
+            _classId = classId;
+            _faceOnly = FaceOnly;
         }
 
         public Image<Gray, byte> FaceOnly
@@ -49,6 +56,32 @@ namespace Sistema_Reconocimiento_Facial
             set
             {
                 _roi = value;
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+
+            set
+            {
+                _name = value;
+            }
+        }
+
+        public int ClassId
+        {
+            get
+            {
+                return _classId;
+            }
+
+            set
+            {
+                _classId = value;
             }
         }
     }

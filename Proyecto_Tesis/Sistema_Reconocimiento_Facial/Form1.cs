@@ -23,7 +23,10 @@ namespace Sistema_Reconocimiento_Facial
     {
         private static string pathCascadeFace = "haarcascade_frontalface_default.xml";
         private static string pathCascadeEye = "haarcascade_eye.xml";
+        private int widthFrameCamera = 640;
+        private int heightFrameCamera = 360;
 
+        private Dictionary<int, string> listSearch; //Estructura de dato para búsqueda rápida de una persona por etiqueta/clase
         private List<Mat> dataTrain; //Datos de entrenamiento.
         private Matrix<int> labelTrain; //Etiquetas para datos de entrenamiento.
         private List<List<float>> dataTrainHOG; //Descriptores HOG para datos de entrenamiento.
@@ -43,27 +46,16 @@ namespace Sistema_Reconocimiento_Facial
             InitializeComponent();
             try
             {
-                if (File.Exists("model_svm.txt"))
-                {
-                    model = new SVM();
-                    FileStorage file = new FileStorage("model_svm.txt", FileStorage.Mode.Read);
-                    model.Read(file.GetNode("opencv_ml_svm"));
-                }
-                else
-                {
-                    loadDatatraining(ref dataTrain, ref labelTrain);
-                    calculateDescriptorsHOG(dataTrain, ref dataTrainHOG, out sizeDescriptor, out countDescriptors);
-                    dataTrainMat = new Mat(new Size(sizeDescriptor, countDescriptors), DepthType.Cv32F, 1); //	Mat(Size, DepthType, Int32)
-                    convertVectorToMatrix(ref dataTrainMat, dataTrainHOG);
-                    model = training(dataTrainMat, labelTrain);
-                }
-                    //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
-                    _capture = new VideoCapture();
-                    _capture.ImageGrabbed += ProcessFrame;
-                    _capture.Start();
-
+                loadDatatraining(ref dataTrain, ref labelTrain);
+                calculateDescriptorsHOG(dataTrain, ref dataTrainHOG, out sizeDescriptor, out countDescriptors);
+                dataTrainMat = new Mat(new Size(sizeDescriptor, countDescriptors), DepthType.Cv32F, 1); //	Mat(Size, DepthType, Int32)
+                convertVectorToMatrix(ref dataTrainMat, dataTrainHOG);
+                model = training(dataTrainMat, labelTrain);
+                //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
+                _capture = new VideoCapture();
+                _capture.ImageGrabbed += ProcessFrame;
+                _capture.Start();
                 _frame = new Mat();
-
                 //IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\4-person.jpg", ImreadModes.Color);
                 //testIt(img);
             }
@@ -196,6 +188,7 @@ namespace Sistema_Reconocimiento_Facial
             try
             {
                 dataTrain = new List<Mat>();
+                listSearch = new Dictionary<int, string>();
                 // Especificar ruta de origen para datos de entrenamiento
                 var path = new DirectoryInfo(Path.Combine(Application.StartupPath, "resources/data-train"));
                 string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
@@ -217,7 +210,8 @@ namespace Sistema_Reconocimiento_Facial
                     classID += 1;
                     // Clasificar la imágenes según su extensión (compresión de imagen).
                     FileInfo[] files = GetFilesByExtensions(classFolder, ".jpg", ".png").ToArray();
-
+                    //Agregando una persona a una lista de los más buscados.
+                    listSearch.Add(classID, nameFolder);
                     // Iterar por carpeta, buscando imágenes
                     for (int i = 0; i < files.Length; i++)
                     {
@@ -332,7 +326,7 @@ namespace Sistema_Reconocimiento_Facial
             CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
             Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
 
-            faceDetected = detectFaces(frameGray.ToImage<Gray,Byte>().Resize(640, 480, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
+            faceDetected = detectFaces(frameGray.ToImage<Gray,Byte>().Resize(widthFrameCamera, heightFrameCamera, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
             dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
             
             //SSi encuentra al menos un rostro
@@ -348,8 +342,9 @@ namespace Sistema_Reconocimiento_Facial
                     Console.WriteLine("El sujeto " + numPerson + "corresponde a la clase: " + result.ToString());
                     Face face = faceDetected.ElementAt(numPerson);
                     //Pintar y etiquetar
+                    string nombre = listSearch[(int)result];
                     CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                    CvInvoke.PutText(frameBgr, result.ToString(), new Point(face.Roi.X, face.Roi.Y), FontFace.HersheySimplex, 1.0, new Bgr(Color.Black).MCvScalar);
+                    CvInvoke.PutText(frameBgr, nombre, new Point(face.Roi.X, face.Roi.Y), FontFace.HersheySimplex, 1.0, new Bgr(Color.Blue).MCvScalar);
                     pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
