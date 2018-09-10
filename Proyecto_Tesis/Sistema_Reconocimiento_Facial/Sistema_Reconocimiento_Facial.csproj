@@ -105,6 +105,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rois.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -141,9 +142,6 @@
     <Content Include="resources\data-test\4-person.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="resources\data-test\profesores-icci.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="resources\data-test\test-11.jpg" />
     <Content Include="resources\data-test\test-22.jpg" />
     <Content Include="resources\data-test\test-33.jpg" />
@@ -168,24 +166,6 @@
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0001.jpg" />
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0002.jpg" />
     <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0003.jpg" />
-    <Content Include="resources\data-train\Danilo_Daniel\20180222_001348.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-train\Danilo_Daniel\20180222_001352.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-train\Danilo_Daniel\20180222_001409.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-train\Diego_Aracena\diego-aracena-01.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-train\Diego_Aracena\diego-aracena-02.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-train\Diego_Aracena\diego-aracena-03.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
