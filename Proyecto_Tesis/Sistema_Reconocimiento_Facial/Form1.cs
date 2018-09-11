@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+//Referencias para categorizar muestras
+using Microsoft.VisualBasic.Devices;
 //Referencias EmguCV
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -26,8 +28,11 @@ namespace Sistema_Reconocimiento_Facial
         private int widthFrameCamera = 250;
         private int heightFrameCamera = 250;
 
+        private Computer myComputer = new Computer();
+
         //Estructura de dato para búsqueda rápida de una persona por etiqueta/clase.
         private Dictionary<int, string> listSearch;
+        private Dictionary<int, Person> listPersons;
         //Datos de entrenamiento.
         private List<Mat> dataTrain;
         private List<Mat> dataRoi1;
@@ -312,6 +317,7 @@ namespace Sistema_Reconocimiento_Facial
             InitializeComponent();
             try
             {
+
                 loadDatatraining(ref dataTrain, ref labelTrain);
                 trainingDataFactor64();
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
@@ -431,6 +437,7 @@ namespace Sistema_Reconocimiento_Facial
             {
                 dataTrain = new List<Mat>();
                 listSearch = new Dictionary<int, string>();
+                listPersons = new Dictionary<int, Person>();
                 // Especificar ruta de origen para datos de entrenamiento
                 var path = new DirectoryInfo(Path.Combine(Application.StartupPath, "resources/data-train"));
                 string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
@@ -454,6 +461,10 @@ namespace Sistema_Reconocimiento_Facial
                     FileInfo[] files = GetFilesByExtensions(classFolder, ".jpg", ".png").ToArray();
                     //Agregando una persona a una lista de los más buscados.
                     listSearch.Add(classID, nameFolder);
+                    Person sujeto = new Person();
+                    sujeto.Nombre = nameFolder;
+                    sujeto.NroVotos = 0;
+                    listPersons.Add(classID,sujeto);
                     // Iterar por carpeta, buscando imágenes
                     for (int i = 0; i < files.Length; i++)
                     {
@@ -762,16 +773,25 @@ namespace Sistema_Reconocimiento_Facial
                 for (int numPerson = 0; numPerson < faceDetected.Count(); numPerson++)
                 {
                     //Indicar la fila ha predecir
-                    float result1 = modelRoi1.Predict(dataRoi1Mat.Row(numPerson));
-                    float result2 = modelRoi2.Predict(dataRoi2Mat.Row(numPerson));
-                    float result3 = modelRoi3.Predict(dataRoi3Mat.Row(numPerson));
-                    float result4 = modelRoi4.Predict(dataRoi4Mat.Row(numPerson));
-                    //Console.WriteLine("El sujeto " + numPerson + "corresponde a la clase: " + result.ToString());
-                    //Face face = faceDetected.ElementAt(numPerson);
-                    ////Pintar y etiquetar
-                    //string nombre = listSearch[(int)result];
-                    //CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                    //CvInvoke.PutText(frameBgr, nombre, new Point(face.Roi.X, face.Roi.Y), FontFace.HersheySimplex, 1.0, new Bgr(Color.Blue).MCvScalar);
+                    this.acumuladorPrediccion( (int) modelRoi1.Predict(dataRoi1Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi2.Predict(dataRoi2Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi3.Predict(dataRoi3Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi4.Predict(dataRoi4Mat.Row(numPerson)) );
+
+                    int resultado = this.evaluacionPredicionFactor4();
+                    if (resultado != 0)
+                    {
+                        Person sujeto = listPersons[resultado];
+                        Face face = faceDetected.ElementAt(numPerson);
+                        //Pintar y etiquetar
+                        string nombre = listSearch[resultado];
+                        CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
+                        Console.WriteLine("La muestra ingresada corresponde a {0}", sujeto.Nombre);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No fue posible identificar la muesta ingresada");
+                    }
                     pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
@@ -1051,28 +1071,37 @@ namespace Sistema_Reconocimiento_Facial
                 for (int numPerson = 0; numPerson < faceDetected.Count(); numPerson++)
                 {
                     //Indicar la fila ha predecir
-                    float result1 = modelRoi1.Predict(dataRoi1Mat.Row(numPerson));
-                    float result2 = modelRoi2.Predict(dataRoi2Mat.Row(numPerson));
-                    float result3 = modelRoi3.Predict(dataRoi3Mat.Row(numPerson));
-                    float result4 = modelRoi4.Predict(dataRoi4Mat.Row(numPerson));
-                    float result5 = modelRoi5.Predict(dataRoi5Mat.Row(numPerson));
-                    float result6 = modelRoi6.Predict(dataRoi6Mat.Row(numPerson));
-                    float result7 = modelRoi7.Predict(dataRoi7Mat.Row(numPerson));
-                    float result8 = modelRoi8.Predict(dataRoi8Mat.Row(numPerson));
-                    float result9 = modelRoi9.Predict(dataRoi9Mat.Row(numPerson));
-                    float result10 = modelRoi10.Predict(dataRoi10Mat.Row(numPerson));
-                    float result11 = modelRoi11.Predict(dataRoi11Mat.Row(numPerson));
-                    float result12 = modelRoi12.Predict(dataRoi12Mat.Row(numPerson));
-                    float result13 = modelRoi13.Predict(dataRoi13Mat.Row(numPerson));
-                    float result14 = modelRoi14.Predict(dataRoi14Mat.Row(numPerson));
-                    float result15 = modelRoi15.Predict(dataRoi15Mat.Row(numPerson));
-                    float result16 = modelRoi16.Predict(dataRoi16Mat.Row(numPerson));
-                    //Console.WriteLine("El sujeto " + numPerson + "corresponde a la clase: " + result.ToString());
-                    //Face face = faceDetected.ElementAt(numPerson);
-                    ////Pintar y etiquetar
-                    //string nombre = listSearch[(int)result];
-                    //CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                    //CvInvoke.PutText(frameBgr, nombre, new Point(face.Roi.X, face.Roi.Y), FontFace.HersheySimplex, 1.0, new Bgr(Color.Blue).MCvScalar);
+                    this.acumuladorPrediccion( (int) modelRoi1.Predict(dataRoi1Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi2.Predict(dataRoi2Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi3.Predict(dataRoi3Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi4.Predict(dataRoi4Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi5.Predict(dataRoi5Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi6.Predict(dataRoi6Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi7.Predict(dataRoi7Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi8.Predict(dataRoi8Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi9.Predict(dataRoi9Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi10.Predict(dataRoi10Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi11.Predict(dataRoi11Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi12.Predict(dataRoi12Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi13.Predict(dataRoi13Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi14.Predict(dataRoi14Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi15.Predict(dataRoi15Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi16.Predict(dataRoi16Mat.Row(numPerson)) );
+
+                    int resultado = this.evaluacionPredicionFactor16();
+                    if (resultado != 0)
+                    {
+                        Person sujeto = listPersons[resultado];
+                        Face face = faceDetected.ElementAt(numPerson);
+                        //Pintar y etiquetar
+                        string nombre = listSearch[resultado];
+                        CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
+                        Console.WriteLine("La muestra ingresada corresponde a {0}", sujeto.Nombre);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No fue posible identificar la muesta ingresada");
+                    }
                     pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
@@ -1791,83 +1820,94 @@ namespace Sistema_Reconocimiento_Facial
                 this.convertFragmentVectorToMatrixFactor64(ref dataRoi62Mat, dataRoi62HOG);
                 this.convertFragmentVectorToMatrixFactor64(ref dataRoi63Mat, dataRoi63HOG);
                 this.convertFragmentVectorToMatrixFactor64(ref dataRoi64Mat, dataRoi64HOG);
+
+                List<float> result = new List<float>();
                 for (int numPerson = 0; numPerson < faceDetected.Count(); numPerson++)
                 {
                     //Indicar la fila ha predecir
-                    float result1 = modelRoi1.Predict(dataRoi1Mat.Row(numPerson));
-                    float result2 = modelRoi2.Predict(dataRoi2Mat.Row(numPerson));
-                    float result3 = modelRoi3.Predict(dataRoi3Mat.Row(numPerson));
-                    float result4 = modelRoi4.Predict(dataRoi4Mat.Row(numPerson));
-                    float result5 = modelRoi5.Predict(dataRoi5Mat.Row(numPerson));
-                    float result6 = modelRoi6.Predict(dataRoi6Mat.Row(numPerson));
-                    float result7 = modelRoi7.Predict(dataRoi7Mat.Row(numPerson));
-                    float result8 = modelRoi8.Predict(dataRoi8Mat.Row(numPerson));
-                    float result9 = modelRoi9.Predict(dataRoi9Mat.Row(numPerson));
-                    float result10 = modelRoi10.Predict(dataRoi10Mat.Row(numPerson));
-                    float result11 = modelRoi11.Predict(dataRoi11Mat.Row(numPerson));
-                    float result12 = modelRoi12.Predict(dataRoi12Mat.Row(numPerson));
-                    float result13 = modelRoi13.Predict(dataRoi13Mat.Row(numPerson));
-                    float result14 = modelRoi14.Predict(dataRoi14Mat.Row(numPerson));
-                    float result15 = modelRoi15.Predict(dataRoi15Mat.Row(numPerson));
-                    float result16 = modelRoi16.Predict(dataRoi16Mat.Row(numPerson));
+                    this.acumuladorPrediccion( (int) modelRoi1.Predict(dataRoi1Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi2.Predict(dataRoi2Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi4.Predict(dataRoi4Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi5.Predict(dataRoi5Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi6.Predict(dataRoi6Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi7.Predict(dataRoi7Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi8.Predict(dataRoi8Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi9.Predict(dataRoi9Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi3.Predict(dataRoi3Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi10.Predict(dataRoi10Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi11.Predict(dataRoi11Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi12.Predict(dataRoi12Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi13.Predict(dataRoi13Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi14.Predict(dataRoi14Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi15.Predict(dataRoi15Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi16.Predict(dataRoi16Mat.Row(numPerson)) );
 
-                    float result17 = modelRoi17.Predict(dataRoi17Mat.Row(numPerson));
-                    float result18 = modelRoi18.Predict(dataRoi18Mat.Row(numPerson));
-                    float result19 = modelRoi19.Predict(dataRoi19Mat.Row(numPerson));
-                    float result20 = modelRoi20.Predict(dataRoi20Mat.Row(numPerson));
-                    float result21 = modelRoi21.Predict(dataRoi21Mat.Row(numPerson));
-                    float result22 = modelRoi22.Predict(dataRoi22Mat.Row(numPerson));
-                    float result23 = modelRoi23.Predict(dataRoi23Mat.Row(numPerson));
-                    float result24 = modelRoi24.Predict(dataRoi24Mat.Row(numPerson));
-                    float result25 = modelRoi25.Predict(dataRoi25Mat.Row(numPerson));
-                    float result26 = modelRoi26.Predict(dataRoi26Mat.Row(numPerson));
-                    float result27 = modelRoi27.Predict(dataRoi27Mat.Row(numPerson));
-                    float result28 = modelRoi28.Predict(dataRoi28Mat.Row(numPerson));
-                    float result29 = modelRoi29.Predict(dataRoi29Mat.Row(numPerson));
-                    float result30 = modelRoi30.Predict(dataRoi30Mat.Row(numPerson));
-                    float result31 = modelRoi31.Predict(dataRoi31Mat.Row(numPerson));
-                    float result32 = modelRoi32.Predict(dataRoi32Mat.Row(numPerson));
+                    this.acumuladorPrediccion( (int) modelRoi17.Predict(dataRoi17Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi18.Predict(dataRoi18Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi19.Predict(dataRoi19Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi20.Predict(dataRoi20Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi21.Predict(dataRoi21Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi22.Predict(dataRoi22Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi23.Predict(dataRoi23Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi24.Predict(dataRoi24Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi25.Predict(dataRoi25Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi26.Predict(dataRoi26Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi27.Predict(dataRoi27Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi28.Predict(dataRoi28Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi29.Predict(dataRoi29Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi30.Predict(dataRoi30Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi31.Predict(dataRoi31Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi32.Predict(dataRoi32Mat.Row(numPerson)) );
 
-                    float result33 = modelRoi33.Predict(dataRoi33Mat.Row(numPerson));
-                    float result34 = modelRoi34.Predict(dataRoi34Mat.Row(numPerson));
-                    float result35 = modelRoi35.Predict(dataRoi35Mat.Row(numPerson));
-                    float result36 = modelRoi36.Predict(dataRoi36Mat.Row(numPerson));
-                    float result37 = modelRoi37.Predict(dataRoi37Mat.Row(numPerson));
-                    float result38 = modelRoi38.Predict(dataRoi38Mat.Row(numPerson));
-                    float result39 = modelRoi39.Predict(dataRoi39Mat.Row(numPerson));
-                    float result40 = modelRoi40.Predict(dataRoi40Mat.Row(numPerson));
-                    float result41 = modelRoi41.Predict(dataRoi41Mat.Row(numPerson));
-                    float result42 = modelRoi42.Predict(dataRoi42Mat.Row(numPerson));
-                    float result43 = modelRoi43.Predict(dataRoi43Mat.Row(numPerson));
-                    float result44 = modelRoi44.Predict(dataRoi44Mat.Row(numPerson));
-                    float result45 = modelRoi45.Predict(dataRoi45Mat.Row(numPerson));
-                    float result46 = modelRoi46.Predict(dataRoi46Mat.Row(numPerson));
-                    float result47 = modelRoi47.Predict(dataRoi47Mat.Row(numPerson));
-                    float result48 = modelRoi48.Predict(dataRoi48Mat.Row(numPerson));
+                    this.acumuladorPrediccion( (int) modelRoi33.Predict(dataRoi33Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi34.Predict(dataRoi34Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi35.Predict(dataRoi35Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi36.Predict(dataRoi36Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi37.Predict(dataRoi37Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi38.Predict(dataRoi38Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi39.Predict(dataRoi39Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi40.Predict(dataRoi40Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi41.Predict(dataRoi41Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi42.Predict(dataRoi42Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi43.Predict(dataRoi43Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi44.Predict(dataRoi44Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi45.Predict(dataRoi45Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi46.Predict(dataRoi46Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi47.Predict(dataRoi47Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi48.Predict(dataRoi48Mat.Row(numPerson)) );
 
-                    float result49 = modelRoi49.Predict(dataRoi49Mat.Row(numPerson));
-                    float result50 = modelRoi50.Predict(dataRoi50Mat.Row(numPerson));
-                    float result51 = modelRoi51.Predict(dataRoi51Mat.Row(numPerson));
-                    float result52 = modelRoi52.Predict(dataRoi52Mat.Row(numPerson));
-                    float result53 = modelRoi53.Predict(dataRoi53Mat.Row(numPerson));
-                    float result54 = modelRoi54.Predict(dataRoi54Mat.Row(numPerson));
-                    float result55 = modelRoi55.Predict(dataRoi55Mat.Row(numPerson));
-                    float result56 = modelRoi56.Predict(dataRoi56Mat.Row(numPerson));
-                    float result57 = modelRoi57.Predict(dataRoi57Mat.Row(numPerson));
-                    float result58 = modelRoi58.Predict(dataRoi58Mat.Row(numPerson));
-                    float result59 = modelRoi59.Predict(dataRoi59Mat.Row(numPerson));
-                    float result60 = modelRoi60.Predict(dataRoi60Mat.Row(numPerson));
-                    float result61 = modelRoi61.Predict(dataRoi61Mat.Row(numPerson));
-                    float result62 = modelRoi62.Predict(dataRoi62Mat.Row(numPerson));
-                    float result63 = modelRoi63.Predict(dataRoi63Mat.Row(numPerson));
-                    float result64 = modelRoi64.Predict(dataRoi64Mat.Row(numPerson));
+                    this.acumuladorPrediccion( (int) modelRoi49.Predict(dataRoi49Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi50.Predict(dataRoi50Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi51.Predict(dataRoi51Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi52.Predict(dataRoi52Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi53.Predict(dataRoi53Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi54.Predict(dataRoi54Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi55.Predict(dataRoi55Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi56.Predict(dataRoi56Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi57.Predict(dataRoi57Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi58.Predict(dataRoi58Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi59.Predict(dataRoi59Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi60.Predict(dataRoi60Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi61.Predict(dataRoi61Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi62.Predict(dataRoi62Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi63.Predict(dataRoi63Mat.Row(numPerson)) );
+                    this.acumuladorPrediccion( (int) modelRoi64.Predict(dataRoi64Mat.Row(numPerson)) );
 
-                    //Console.WriteLine("El sujeto " + numPerson + "corresponde a la clase: " + result.ToString());
-                    //Face face = faceDetected.ElementAt(numPerson);
-                    ////Pintar y etiquetar
-                    //string nombre = listSearch[(int)result];
-                    //CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                    //CvInvoke.PutText(frameBgr, nombre, new Point(face.Roi.X, face.Roi.Y), FontFace.HersheySimplex, 1.0, new Bgr(Color.Blue).MCvScalar);
+                    int resultado = this.evaluacionPredicionFactor64();
+                    if(resultado != 0)
+                    {
+                        Person sujeto = listPersons[resultado];
+                        Face face = faceDetected.ElementAt(numPerson);
+                        //Pintar y etiquetar
+                        string nombre = listSearch[resultado];
+                        CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
+                        Console.WriteLine("La muestra ingresada corresponde a {0}", sujeto.Nombre);
+                    }
+                    else
+                    {
+                        Console.WriteLine("No fue posible identificar la muesta ingresada");
+                    }
+                    
                     pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
@@ -2152,5 +2192,100 @@ namespace Sistema_Reconocimiento_Facial
             modelRoi63 = this.trainingFragmentFactor64(dataRoi63Mat, labelTrain);
             modelRoi64 = this.trainingFragmentFactor64(dataRoi64Mat, labelTrain);
         }
+
+        /********** MÈTODOS EXTRAS *************/
+        public void separarMuestras()
+        {
+            // Especificar ruta de origen para datos de entrenamiento
+            var path = new DirectoryInfo("E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw");
+            string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
+
+            
+
+            foreach (var folder in dirsDataTrain)
+            {
+                string[] subDir = Directory.GetFiles(folder.ToString(), "*.jpg");
+
+
+                /****************** Separación de muestras por carpetas   ********************/
+                //if ((int)subDir.Length == 2)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//UnaMuestraPorPersona"+ folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+
+                //if ((int)subDir.Length == 3)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//DosMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+
+                //if ((int)subDir.Length == 4)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//TresMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+
+                //if ((int)subDir.Length == 5)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//CuatroMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+
+                //if ((int)subDir.Length >= 6)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//MasCincoMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+                /****************** Se filtra la carpeta lfw para contener sólo carpetas con mas de una muestra, es resto se desecha   ********************/
+                //if ((int)subDir.Length >= 2)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Filtro/" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+            }
+        }
+
+        public void acumuladorPrediccion(int prediccion)
+        {
+            Person sujeto = this.listPersons[prediccion];
+            sujeto.NroVotos += 1;
+            Console.WriteLine("Sujeto: {0} tiene {1} votos.",sujeto.Nombre, sujeto.NroVotos);
+        }
+
+        public int evaluacionPredicionFactor4()
+        {
+            int resultado = 0;
+            foreach (var sujeto in listPersons)
+            {
+                if ((int)sujeto.Value.NroVotos > 0.75 * 4)
+                {
+                    resultado = sujeto.Key;
+                }
+            }
+
+            return resultado;
+        }
+        public int evaluacionPredicionFactor16()
+        {
+            int resultado = 0;
+            foreach (var sujeto in listPersons)
+            {
+                if ((int)sujeto.Value.NroVotos > 0.75 * 16)
+                {
+                    resultado = sujeto.Key;
+                }
+            }
+
+            return resultado;
+        }
+        public int evaluacionPredicionFactor64()
+        {
+            int resultado = 0;
+            foreach (var sujeto in listPersons)
+            {
+                if ((int)sujeto.Value.NroVotos > 0.75 * 64)
+                {
+                    resultado = sujeto.Key;
+                }
+            }
+
+            return resultado;
+        }
+
     }
 }
