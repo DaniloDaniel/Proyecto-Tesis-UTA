@@ -317,9 +317,9 @@ namespace Sistema_Reconocimiento_Facial
             InitializeComponent();
             try
             {
-                //this.separarMuestras();
-                loadDatatraining(ref dataTrain, ref labelTrain);
-                trainingDataFactor64();
+                this.separarMuestras();
+                //loadDatatraining(ref dataTrain, ref labelTrain);
+                //trainingDataFactor64();
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
                 //_capture = new VideoCapture();
                 //_capture.ImageGrabbed += ProcessFrame;
@@ -2197,16 +2197,10 @@ namespace Sistema_Reconocimiento_Facial
         public void separarMuestras()
         {
             // Especificar ruta de origen para datos de entrenamiento
-            var path = new DirectoryInfo("E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-filtro");
+            var path = new DirectoryInfo("E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw");
             string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
 
-            /****************** Se filtra la carpeta lfw para contener sólo carpetas con mas de una muestra, es resto se desecha   ********************/
-            //if ((int)subDir.Length >= 2)
-            //{
-            //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Filtro/" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
-            //}
-
-            /***************** Para quitar una muestra de la bd y utilizarla como testing *********/
+            ///***************** Para quitar una muestra de la bd y utilizarla como testing *********/
             //foreach (DirectoryInfo classFolder in path.EnumerateDirectories())
             //{
             //    FileInfo[] files = GetFilesByExtensions(classFolder, ".jpg", ".png").ToArray();
@@ -2214,7 +2208,7 @@ namespace Sistema_Reconocimiento_Facial
             //    for (int i = 0; i < 1; i++)
             //    {
             //        FileInfo file = files[i];
-            //        myComputer.FileSystem.MoveFile(file.FullName, @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-test//"+file.Name);
+            //        myComputer.FileSystem.MoveFile(file.FullName, @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-test//" + file.Name);
             //    }
             //}
 
@@ -2222,30 +2216,37 @@ namespace Sistema_Reconocimiento_Facial
             {
                 string[] subDir = Directory.GetFiles(folder.ToString(), "*.jpg");
 
-                /****************** Separación de muestras por carpetas   ********************/
-                //if ((int)subDir.Length == 1)
+                /****************** Se filtra la carpeta lfw para contener sólo carpetas con mas de una muestra, es resto se desecha   ********************/
+
+                //if ((int)subDir.Length >= 2)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//UnaMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "e://icci 2010//2018//reconocimiento facial//dataset-train//lfw-filtro/" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
+                /****************** Separación de muestras por carpetas   ********************/
                 //if ((int)subDir.Length == 2)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//DosMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//UnaMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
                 //if ((int)subDir.Length == 3)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//TresMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//DosMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
                 //if ((int)subDir.Length == 4)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//CuatroMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//TresMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
-                //if ((int)subDir.Length >= 5)
+                //if ((int)subDir.Length == 5)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//MasCincoMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//CuatroMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+
+                //if ((int)subDir.Length >= 6)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//MasCincoMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
             }
         }
