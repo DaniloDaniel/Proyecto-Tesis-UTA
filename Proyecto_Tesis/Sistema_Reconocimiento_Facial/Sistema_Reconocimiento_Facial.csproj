@@ -133,7 +133,10 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="resources\data-test\" />
+    <Folder Include="resources\data-train\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="haarcascade_eye.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -141,36 +144,6 @@
     <Content Include="haarcascade_frontalface_default.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="resources\data-test\4-person.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-test\test-11.jpg" />
-    <Content Include="resources\data-test\test-22.jpg" />
-    <Content Include="resources\data-test\test-33.jpg" />
-    <Content Include="resources\data-test\test-4.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-test\test-44.jpg" />
-    <Content Include="resources\data-test\test-66.jpg" />
-    <Content Include="resources\data-test\test-98.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-test\test-99.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0001.jpg" />
-    <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0002.jpg" />
-    <Content Include="resources\data-train\Aaron_Peirsol\Aaron_Peirsol_0003.jpg" />
-    <Content Include="resources\data-train\Abdullah\Abdullah_0001.jpg" />
-    <Content Include="resources\data-train\Abdullah\Abdullah_0002.jpg" />
-    <Content Include="resources\data-train\Abdullah\Abdullah_0003.jpg" />
-    <Content Include="resources\data-train\Abdullah\Abdullah_0004.jpg" />
-    <Content Include="resources\data-train\Adel_Al-Jubeir\Adel_Al-Jubeir_0001.jpg" />
-    <Content Include="resources\data-train\Adel_Al-Jubeir\Adel_Al-Jubeir_0002.jpg" />
-    <Content Include="resources\data-train\Adel_Al-Jubeir\Adel_Al-Jubeir_0003.jpg" />
-    <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0001.jpg" />
-    <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0002.jpg" />
-    <Content Include="resources\data-train\Alexandra_Stevenson\Alexandra_Stevenson_0003.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
