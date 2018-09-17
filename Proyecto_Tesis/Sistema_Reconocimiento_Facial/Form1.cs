@@ -27,7 +27,8 @@ namespace Sistema_Reconocimiento_Facial
         private static string pathCascadeEye = "haarcascade_eye.xml";
         private int widthFrameCamera = 250;
         private int heightFrameCamera = 250;
-
+        private double porcentajeAceptacionMax = 0.55;
+        private double porcentajeAceptacionMin = 0.1;
         private Computer myComputer = new Computer();
 
         //Estructura de dato para búsqueda rápida de una persona por etiqueta/clase.
@@ -312,22 +313,50 @@ namespace Sistema_Reconocimiento_Facial
 
         private Mat _frame;
 
+        //Nombre de sujetos
+        private string sujetoDesconocido;
+        private string sujetoIdentificado;
+
+        //Variables Extras
+        private static int conteoRostrosFragmentados = 0;
+        private Dictionary<string,string> sujetosEvaluados;
         public Form1()
         {
             InitializeComponent();
             try
             {
+                this.sujetosEvaluados = new Dictionary<string, string>();
                 //this.separarMuestras();
                 loadDatatraining(ref dataTrain, ref labelTrain);
-                trainingDataFactor64();
+                trainingDataFactor16();
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
                 //_capture = new VideoCapture();
                 //_capture.ImageGrabbed += ProcessFrame;
                 //_capture.Start();
                 //_frame = new Mat();
-                IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\resources\data-test\test-44.jpg", ImreadModes.Color);
-                //testIt(img);
-                //this.testItFragmentFactor64(img);
+
+                //IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\bin\x64\Debug\resources\data-test\TresMuestraPorPersona\Abdullah_0006.jpg", ImreadModes.Color);
+
+                var path = new DirectoryInfo(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\bin\x64\Debug\resources\data-test\MasCincoMuestraPorPersonaTest");
+
+                FileInfo[] files = GetFilesByExtensions(path, ".jpg", ".png").ToArray();
+                for (int i = 0; i < files.Length; i++)
+                {
+                    FileInfo file = files[i];
+                    IImage img = new Mat(file.FullName, ImreadModes.Color);
+                    this.sujetoDesconocido = file.Name;
+                    this.testItFragmentFactor16(img);
+                    this.sujetosEvaluados.Add(this.sujetoDesconocido, this.sujetoIdentificado);
+                }
+                int tasaAsiertos = 0;
+                foreach (var key in this.sujetosEvaluados.Keys)
+                {
+                    if (key.ToString().Contains(this.sujetosEvaluados[key].ToString()))
+                    {
+                        tasaAsiertos += 1;
+                    }
+                }
+                Console.WriteLine("Tasa de Asiertos es: {0}", tasaAsiertos);
             }
             catch (Exception ex)
             {
@@ -439,7 +468,7 @@ namespace Sistema_Reconocimiento_Facial
                 listSearch = new Dictionary<int, string>();
                 listPersons = new Dictionary<int, Person>();
                 // Especificar ruta de origen para datos de entrenamiento
-                var path = new DirectoryInfo(Path.Combine(Application.StartupPath, "resources/data-train"));
+                var path = new DirectoryInfo(Path.Combine(Application.StartupPath, "resources/data-train/MasCincoMuestraPorPersonaTest"));
                 string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
                 int tamDataTrain = 0;
                 int classID = 0;
@@ -480,6 +509,7 @@ namespace Sistema_Reconocimiento_Facial
                         //Agregando una imagen de tipo Mat a la lista
                         dataTrain.Add(imgMat);
                         imgCount++;
+                        
                     }
                 }
             }
@@ -629,6 +659,7 @@ namespace Sistema_Reconocimiento_Facial
         //Fragmentación por factor de 4
         public void fragmentImageFactor4(ref List<Mat> data)
         {
+            
 
             int jump = 32;
             dataRoi1 = new List<Mat>();
@@ -641,7 +672,7 @@ namespace Sistema_Reconocimiento_Facial
             {
                 foreach (Mat face in data)
                 {
-
+                    conteoRostrosFragmentados += 1;
                     Image<Gray, Byte> img = face.ToImage<Gray, Byte>();
                     Rectangle roi1 = new Rectangle(jump * 0, jump * 0, jump, jump); //1,1
                     Rectangle roi2 = new Rectangle(jump * 1, jump * 0, jump, jump); //1,2
@@ -660,7 +691,10 @@ namespace Sistema_Reconocimiento_Facial
 
                     roiAux = img.Copy(roi4);
                     dataRoi4.Add(roiAux.Mat);
+
+                    Console.WriteLine(conteoRostrosFragmentados);
                 }
+                
             }
             catch (Exception ex)
             {
@@ -779,6 +813,8 @@ namespace Sistema_Reconocimiento_Facial
                     this.acumuladorPrediccion( (int) modelRoi4.Predict(dataRoi4Mat.Row(numPerson)) );
 
                     int resultado = this.evaluacionPredicionFactor4();
+                    if (resultado == 0) resultado = this.evaluacionPredicion2Factor4();
+
                     if (resultado != 0)
                     {
                         Person sujeto = listPersons[resultado];
@@ -786,12 +822,15 @@ namespace Sistema_Reconocimiento_Facial
                         //Pintar y etiquetar
                         string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                        Console.WriteLine("La muestra ingresada corresponde a {0}", sujeto.Nombre);
+                        Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
+                        this.sujetoIdentificado = sujeto.Nombre;
                     }
                     else
                     {
                         Console.WriteLine("No fue posible identificar la muesta ingresada");
+                        this.sujetoIdentificado = "No Identificado";
                     }
+                    this.limpiarAcumuladorPrediccion();
                     pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
@@ -1089,6 +1128,7 @@ namespace Sistema_Reconocimiento_Facial
                     this.acumuladorPrediccion( (int) modelRoi16.Predict(dataRoi16Mat.Row(numPerson)) );
 
                     int resultado = this.evaluacionPredicionFactor16();
+                    if (resultado == 0) resultado = this.evaluacionPredicion2Factor16();
                     if (resultado != 0)
                     {
                         Person sujeto = listPersons[resultado];
@@ -1096,12 +1136,15 @@ namespace Sistema_Reconocimiento_Facial
                         //Pintar y etiquetar
                         string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                        Console.WriteLine("La muestra ingresada corresponde a {0}", sujeto.Nombre);
+                        Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
+                        this.sujetoIdentificado = sujeto.Nombre;
                     }
                     else
                     {
                         Console.WriteLine("No fue posible identificar la muesta ingresada");
+                        this.sujetoIdentificado = "No Identificado";
                     }
+                    this.limpiarAcumuladorPrediccion();
                     pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
@@ -1894,6 +1937,7 @@ namespace Sistema_Reconocimiento_Facial
                     this.acumuladorPrediccion( (int) modelRoi64.Predict(dataRoi64Mat.Row(numPerson)) );
 
                     int resultado = this.evaluacionPredicionFactor64();
+                    if (resultado == 0) resultado = this.evaluacionPredicion2Factor64();
                     if(resultado != 0)
                     {
                         Person sujeto = listPersons[resultado];
@@ -1901,13 +1945,15 @@ namespace Sistema_Reconocimiento_Facial
                         //Pintar y etiquetar
                         string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                        Console.WriteLine("La muestra ingresada corresponde a {0}", sujeto.Nombre);
+                        Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
+                        this.sujetoIdentificado = sujeto.Nombre;
                     }
                     else
                     {
                         Console.WriteLine("No fue posible identificar la muesta ingresada");
+                        this.sujetoIdentificado = "No Identificado";
                     }
-                    
+                    this.limpiarAcumuladorPrediccion();
                     pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
@@ -2197,16 +2243,33 @@ namespace Sistema_Reconocimiento_Facial
         public void separarMuestras()
         {
             // Especificar ruta de origen para datos de entrenamiento
-            var path = new DirectoryInfo("E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-filtro");
+            var path = new DirectoryInfo("E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//MasCincoMuestraPorPersona");
             string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
 
-            /****************** Se filtra la carpeta lfw para contener sólo carpetas con mas de una muestra, es resto se desecha   ********************/
-            //if ((int)subDir.Length >= 2)
+            /************ Para quitar aquellas muestras con mas de un rostro ************/
+            /************ Y aquellas en la que no es posible hallar un rostro ************/
+            //foreach (DirectoryInfo classFolder in path.EnumerateDirectories())
             //{
-            //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Filtro/" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+            //    FileInfo[] files = GetFilesByExtensions(classFolder, ".jpg", ".png").ToArray();
+
+            //    for (int i = 0; i < files.Length; i++)
+            //    {
+            //        FileInfo file = files[i];
+            //        List<Face> faceDetected = new List<Face>();
+            //        UMat imgGray = new UMat();
+
+            //        IImage img = new Mat(@file.FullName, ImreadModes.Color);
+            //        CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+            //        imgGray = alignEyes(imgGray.ToImage<Gray, Byte>().Resize(250, 250, Inter.Linear, false)).ToUMat();
+            //        faceDetected = detectFaces(imgGray.ToImage<Gray, Byte>().Resize(widthFrameCamera, heightFrameCamera, Inter.Linear, false));
+            //        if (faceDetected.Count == 0)
+            //        {
+            //            myComputer.FileSystem.DeleteFile(file.FullName);
+            //        }
+            //    }
             //}
 
-            /***************** Para quitar una muestra de la bd y utilizarla como testing *********/
+            ///***************** Para quitar una muestra de la bd y utilizarla como testing *********/
             //foreach (DirectoryInfo classFolder in path.EnumerateDirectories())
             //{
             //    FileInfo[] files = GetFilesByExtensions(classFolder, ".jpg", ".png").ToArray();
@@ -2214,7 +2277,7 @@ namespace Sistema_Reconocimiento_Facial
             //    for (int i = 0; i < 1; i++)
             //    {
             //        FileInfo file = files[i];
-            //        myComputer.FileSystem.MoveFile(file.FullName, @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-test//"+file.Name);
+            //        myComputer.FileSystem.MoveFile(file.FullName, @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-test//MasCincoMuestraPorPersona//" + file.Name);
             //    }
             //}
 
@@ -2222,30 +2285,37 @@ namespace Sistema_Reconocimiento_Facial
             {
                 string[] subDir = Directory.GetFiles(folder.ToString(), "*.jpg");
 
-                /****************** Separación de muestras por carpetas   ********************/
-                //if ((int)subDir.Length == 1)
+                /****************** Se filtra la carpeta lfw para contener sólo carpetas con mas de una muestra, es resto se desecha   ********************/
+
+                //if ((int)subDir.Length >= 2)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//UnaMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "e://icci 2010//2018//reconocimiento facial//dataset-train//lfw-filtro/" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
+                /****************** Separación de muestras por carpetas   ********************/
                 //if ((int)subDir.Length == 2)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//DosMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//UnaMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
                 //if ((int)subDir.Length == 3)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//TresMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//DosMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
                 //if ((int)subDir.Length == 4)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//CuatroMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//TresMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
-                //if ((int)subDir.Length >= 5)
+                //if ((int)subDir.Length == 5)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-Categorizado//MasCincoMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//CuatroMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //}
+
+                //if ((int)subDir.Length >= 6)
+                //{
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//MasCincoMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
             }
         }
@@ -2253,15 +2323,23 @@ namespace Sistema_Reconocimiento_Facial
         {
             Person sujeto = this.listPersons[prediccion];
             sujeto.NroVotos += 1;
-            Console.WriteLine("Sujeto: {0} tiene {1} votos.",sujeto.Nombre, sujeto.NroVotos);
+            //Console.WriteLine("Sujeto: {0} tiene {1} votos.",sujeto.Nombre, sujeto.NroVotos);
         }
-
+        public void limpiarAcumuladorPrediccion()
+        {
+            foreach (var key in this.listPersons.Keys)
+            {
+                Person sujeto = this.listPersons[key];
+                sujeto.NroVotos = 0;
+            }
+            
+        }
         public int evaluacionPredicionFactor4()
         {
             int resultado = 0;
             foreach (var sujeto in listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > 0.75 * 4)
+                if ((int)sujeto.Value.NroVotos > this.porcentajeAceptacionMax * 4)
                 {
                     resultado = sujeto.Key;
                 }
@@ -2274,7 +2352,7 @@ namespace Sistema_Reconocimiento_Facial
             int resultado = 0;
             foreach (var sujeto in listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > 0.75 * 16)
+                if ((int)sujeto.Value.NroVotos > 0.55 * 16)
                 {
                     resultado = sujeto.Key;
                 }
@@ -2287,7 +2365,7 @@ namespace Sistema_Reconocimiento_Facial
             int resultado = 0;
             foreach (var sujeto in listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > 0.75 * 64)
+                if ((int)sujeto.Value.NroVotos > 0.55 * 64)
                 {
                     resultado = sujeto.Key;
                 }
@@ -2295,6 +2373,68 @@ namespace Sistema_Reconocimiento_Facial
 
             return resultado;
         }
-
+        public int evaluacionPredicion2Factor4()
+        {
+            int resultado = 0;
+            int mayorNroVotos = 0;
+            foreach (var sujeto in this.listPersons)
+            {
+                if ((int)sujeto.Value.NroVotos > mayorNroVotos)
+                {
+                    mayorNroVotos = sujeto.Value.NroVotos;
+                    resultado = sujeto.Key;
+                }
+            }
+            if (this.listPersons[resultado].NroVotos >= this.porcentajeAceptacionMin * 4)
+            {
+                return resultado;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        public int evaluacionPredicion2Factor16()
+        {
+            int resultado = 0;
+            int mayorNroVotos = 0;
+            foreach (var sujeto in this.listPersons)
+            {
+                if ((int)sujeto.Value.NroVotos > mayorNroVotos)
+                {
+                    mayorNroVotos = sujeto.Value.NroVotos;
+                    resultado = sujeto.Key;
+                }
+            }
+            if (this.listPersons[resultado].NroVotos >= this.porcentajeAceptacionMin * 16)
+            {
+                return resultado;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        public int evaluacionPredicion2Factor64()
+        {
+            int resultado = 0;
+            int mayorNroVotos = 0;
+            foreach (var sujeto in this.listPersons)
+            {
+                if ((int)sujeto.Value.NroVotos > mayorNroVotos)
+                {
+                    mayorNroVotos = sujeto.Value.NroVotos;
+                    resultado = sujeto.Key;
+                }
+            }
+            if (this.listPersons[resultado].NroVotos >= this.porcentajeAceptacionMin * 64)
+            {
+                return resultado;
+            }
+            else
+            {
+                return 0;
+            }
+        }
     }
 }
