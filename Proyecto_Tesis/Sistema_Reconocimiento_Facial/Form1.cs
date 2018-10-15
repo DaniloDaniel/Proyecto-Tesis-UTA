@@ -25,10 +25,10 @@ namespace Sistema_Reconocimiento_Facial
     {
         private static string pathCascadeFace = "haarcascade_frontalface_default.xml";
         private static string pathCascadeEye = "haarcascade_eye.xml";
-        private int widthFrameCamera = 250;
-        private int heightFrameCamera = 250;
-        private double porcentajeAceptacionMax = 0.55;
-        private double porcentajeAceptacionMin = 0.1;
+        private int WIDTH_FRAME_CAMERA = 250;
+        private int HEIGHT_FRAME_CAMERA = 250;
+        private double porcentajeAceptacionMax;
+        private double porcentajeAceptacionMin;
         private Computer myComputer = new Computer();
 
         //Estructura de dato para búsqueda rápida de una persona por etiqueta/clase.
@@ -307,7 +307,14 @@ namespace Sistema_Reconocimiento_Facial
         private int countDescriptors;
         private int countRoi1Descriptors;
         //Número de muestras.
-        private static int imgCount = 0; 
+        private static int imgCount = 0;
+        //Parámetos SVM's
+        private int C;
+        private double gamma;
+        private double coef0;
+        private int degree;
+        private double nu;
+        private double P;
 
         private VideoCapture _capture = null;
 
@@ -319,16 +326,16 @@ namespace Sistema_Reconocimiento_Facial
 
         //Variables Extras
         private static int conteoRostrosFragmentados = 0;
+        private int conteoFrames = 0;
+        private int MAX_FRAME = 5;
+        private Boolean isWorking = false;
         private Dictionary<string,string> sujetosEvaluados;
+
         public Form1()
         {
             InitializeComponent();
             try
             {
-                this.sujetosEvaluados = new Dictionary<string, string>();
-                //this.separarMuestras();
-                loadDatatraining(ref dataTrain, ref labelTrain);
-                trainingDataFactor16();
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
                 //_capture = new VideoCapture();
                 //_capture.ImageGrabbed += ProcessFrame;
@@ -336,27 +343,6 @@ namespace Sistema_Reconocimiento_Facial
                 //_frame = new Mat();
 
                 //IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\bin\x64\Debug\resources\data-test\TresMuestraPorPersona\Abdullah_0006.jpg", ImreadModes.Color);
-
-                var path = new DirectoryInfo(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\bin\x64\Debug\resources\data-test\MasCincoMuestraPorPersonaTest");
-
-                FileInfo[] files = GetFilesByExtensions(path, ".jpg", ".png").ToArray();
-                for (int i = 0; i < files.Length; i++)
-                {
-                    FileInfo file = files[i];
-                    IImage img = new Mat(file.FullName, ImreadModes.Color);
-                    this.sujetoDesconocido = file.Name;
-                    this.testItFragmentFactor16(img);
-                    this.sujetosEvaluados.Add(this.sujetoDesconocido, this.sujetoIdentificado);
-                }
-                int tasaAsiertos = 0;
-                foreach (var key in this.sujetosEvaluados.Keys)
-                {
-                    if (key.ToString().Contains(this.sujetosEvaluados[key].ToString()))
-                    {
-                        tasaAsiertos += 1;
-                    }
-                }
-                Console.WriteLine("Tasa de Asiertos es: {0}", tasaAsiertos);
             }
             catch (Exception ex)
             {
@@ -369,7 +355,17 @@ namespace Sistema_Reconocimiento_Facial
             if (_capture != null && _capture.Ptr != IntPtr.Zero)
             {
                 _capture.Retrieve(_frame, 0);
-                testIt(_frame.ToImage<Bgr,byte>());
+                if (this.conteoFrames == 20) this.conteoFrames = 0;
+                this.conteoFrames += 1;
+                Console.WriteLine(this.conteoFrames);
+                if((this.conteoFrames % this.MAX_FRAME == 0) && this.isWorking == true)
+                {
+                    this.testItFragmentFactor4(_frame.ToImage<Bgr, byte>());
+                }
+                else
+                {
+                    this.pbImagenOriginal.Image = _frame.Bitmap;
+                }
             }
         }
 
@@ -435,7 +431,7 @@ namespace Sistema_Reconocimiento_Facial
             CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
             try
             {
-                frame = frame.Resize(250, 250, Inter.Linear, false);
+                frame = frame.Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false);
                 frame = alignEyes(frame);
                 //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
                 foreach (Rectangle face in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
@@ -460,15 +456,16 @@ namespace Sistema_Reconocimiento_Facial
             return imgMat;
         }
 
-        public void loadDatatraining(ref List<Mat> dataTrain, ref Matrix<int> labelTrain)
+        public void loadDatatraining(ref List<Mat> dataTrain, ref Matrix<int> labelTrain, string pathOrigin)
         {
             try
             {
+                imgCount = 0;
                 dataTrain = new List<Mat>();
                 listSearch = new Dictionary<int, string>();
                 listPersons = new Dictionary<int, Person>();
                 // Especificar ruta de origen para datos de entrenamiento
-                var path = new DirectoryInfo(Path.Combine(Application.StartupPath, "resources/data-train/MasCincoMuestraPorPersonaTest"));
+                var path = new DirectoryInfo(pathOrigin);
                 string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
                 int tamDataTrain = 0;
                 int classID = 0;
@@ -503,7 +500,7 @@ namespace Sistema_Reconocimiento_Facial
                         CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
                         //Todas las muestras deben ser preprocesadas.
-                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(250, 250, Inter.Linear, false));
+                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false));
                         //Etiquetando datos de entrada
                         labelTrain[imgCount, 0] = (int)classID;
                         //Agregando una imagen de tipo Mat a la lista
@@ -603,7 +600,7 @@ namespace Sistema_Reconocimiento_Facial
             CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
             Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
 
-            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(widthFrameCamera, heightFrameCamera, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
+            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
             dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
 
             //SSi encuentra al menos un rostro
@@ -659,8 +656,6 @@ namespace Sistema_Reconocimiento_Facial
         //Fragmentación por factor de 4
         public void fragmentImageFactor4(ref List<Mat> data)
         {
-            
-
             int jump = 32;
             dataRoi1 = new List<Mat>();
             dataRoi2 = new List<Mat>();
@@ -672,7 +667,6 @@ namespace Sistema_Reconocimiento_Facial
             {
                 foreach (Mat face in data)
                 {
-                    conteoRostrosFragmentados += 1;
                     Image<Gray, Byte> img = face.ToImage<Gray, Byte>();
                     Rectangle roi1 = new Rectangle(jump * 0, jump * 0, jump, jump); //1,1
                     Rectangle roi2 = new Rectangle(jump * 1, jump * 0, jump, jump); //1,2
@@ -691,10 +685,7 @@ namespace Sistema_Reconocimiento_Facial
 
                     roiAux = img.Copy(roi4);
                     dataRoi4.Add(roiAux.Mat);
-
-                    Console.WriteLine(conteoRostrosFragmentados);
                 }
-                
             }
             catch (Exception ex)
             {
@@ -754,13 +745,13 @@ namespace Sistema_Reconocimiento_Facial
             //Creación del SVM
             //Definición de parámetros
             SVM model = new SVM();
-            model.C = 100;
+            model.C = this.C; //100
             model.Type = SVM.SvmType.CSvc;
-            //model.Coef0 = 0.0; //TODO:Revisar o eliminar
-            //model.Degree = 3; //TODO:Revisar o eliminar
-            //model.Nu = 0.5;//TODO:Revisar o eliminar
-            //model.P = 0.1;//TODO:Revisar o eliminar
-            model.Gamma = 0.005;
+            model.Coef0 = this.coef0;
+            model.Degree = this.degree;
+            model.Nu = this.nu;
+            model.P = this.P;
+            model.Gamma = this.gamma;//0.005
             model.SetKernel(SVM.SvmKernelType.Linear);
             model.TermCriteria = new MCvTermCriteria(1000, 1e-6);
             model.Train(dataTrainMat, Emgu.CV.ML.MlEnum.DataLayoutType.RowSample, labelTrain);
@@ -779,7 +770,7 @@ namespace Sistema_Reconocimiento_Facial
             CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
             Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
 
-            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(widthFrameCamera, heightFrameCamera, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
+            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
             dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
 
             this.fragmentImageFactor4(ref dataTest);
@@ -812,8 +803,8 @@ namespace Sistema_Reconocimiento_Facial
                     this.acumuladorPrediccion( (int) modelRoi3.Predict(dataRoi3Mat.Row(numPerson)) );
                     this.acumuladorPrediccion( (int) modelRoi4.Predict(dataRoi4Mat.Row(numPerson)) );
 
-                    int resultado = this.evaluacionPredicionFactor4();
-                    if (resultado == 0) resultado = this.evaluacionPredicion2Factor4();
+                    int resultado = this.evaluationPredictionFactor4();
+                    if (resultado == 0) resultado = this.evaluationPrediction2Factor4();
 
                     if (resultado != 0)
                     {
@@ -831,12 +822,12 @@ namespace Sistema_Reconocimiento_Facial
                         this.sujetoIdentificado = "No Identificado";
                     }
                     this.limpiarAcumuladorPrediccion();
-                    pbImagenOriginal.Image = frameBgr.Bitmap;
+                    this.pbImagenOriginal.Image = frameBgr.Bitmap;
                 }
             }
             else
             {
-                pbImagenOriginal.Image = frameBgr.Bitmap;
+                this.pbImagenOriginal.Image = frameBgr.Bitmap;
             }
         }
         public void trainingDataFactor4()
@@ -1023,13 +1014,13 @@ namespace Sistema_Reconocimiento_Facial
             //Creación del SVM
             //Definición de parámetros
             SVM model = new SVM();
-            model.C = 100;
+            model.C = this.C;//100;
             model.Type = SVM.SvmType.CSvc;
-            //model.Coef0 = 0.0; //TODO:Revisar o eliminar
-            //model.Degree = 3; //TODO:Revisar o eliminar
-            //model.Nu = 0.5;//TODO:Revisar o eliminar
-            //model.P = 0.1;//TODO:Revisar o eliminar
-            model.Gamma = 0.005;
+            model.Coef0 = this.coef0;
+            model.Degree = this.degree;
+            model.Nu = this.nu;
+            model.P = this.P;
+            model.Gamma = this.gamma;//0.005
             model.SetKernel(SVM.SvmKernelType.Linear);
             model.TermCriteria = new MCvTermCriteria(1000, 1e-6);
             model.Train(dataTrainMat, Emgu.CV.ML.MlEnum.DataLayoutType.RowSample, labelTrain);
@@ -1048,7 +1039,7 @@ namespace Sistema_Reconocimiento_Facial
             CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
             Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
 
-            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(widthFrameCamera, heightFrameCamera, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
+            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
             dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
 
             this.fragmentImageFactor16(ref dataTest);
@@ -1127,8 +1118,8 @@ namespace Sistema_Reconocimiento_Facial
                     this.acumuladorPrediccion( (int) modelRoi15.Predict(dataRoi15Mat.Row(numPerson)) );
                     this.acumuladorPrediccion( (int) modelRoi16.Predict(dataRoi16Mat.Row(numPerson)) );
 
-                    int resultado = this.evaluacionPredicionFactor16();
-                    if (resultado == 0) resultado = this.evaluacionPredicion2Factor16();
+                    int resultado = this.evaluationPredictionFactor16();
+                    if (resultado == 0) resultado = this.evaluationPrediction2Factor16();
                     if (resultado != 0)
                     {
                         Person sujeto = listPersons[resultado];
@@ -1625,13 +1616,13 @@ namespace Sistema_Reconocimiento_Facial
             //Creación del SVM
             //Definición de parámetros
             SVM model = new SVM();
-            model.C = 100;
+            model.C = this.C;//100
             model.Type = SVM.SvmType.CSvc;
-            //model.Coef0 = 0.0; //TODO:Revisar o eliminar
-            //model.Degree = 3; //TODO:Revisar o eliminar
-            //model.Nu = 0.5;//TODO:Revisar o eliminar
-            //model.P = 0.1;//TODO:Revisar o eliminar
-            model.Gamma = 0.005;
+            model.Coef0 = this.coef0;
+            model.Degree = this.degree;
+            model.Nu = this.nu;
+            model.P = this.P;
+            model.Gamma = this.gamma;//0.005
             model.SetKernel(SVM.SvmKernelType.Linear);
             model.TermCriteria = new MCvTermCriteria(1000, 1e-6);
             model.Train(dataTrainMat, Emgu.CV.ML.MlEnum.DataLayoutType.RowSample, labelTrain);
@@ -1650,7 +1641,7 @@ namespace Sistema_Reconocimiento_Facial
             CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
             Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
 
-            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(widthFrameCamera, heightFrameCamera, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
+            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
             dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
 
             this.fragmentImageFactor64(ref dataTest);
@@ -1936,8 +1927,8 @@ namespace Sistema_Reconocimiento_Facial
                     this.acumuladorPrediccion( (int) modelRoi63.Predict(dataRoi63Mat.Row(numPerson)) );
                     this.acumuladorPrediccion( (int) modelRoi64.Predict(dataRoi64Mat.Row(numPerson)) );
 
-                    int resultado = this.evaluacionPredicionFactor64();
-                    if (resultado == 0) resultado = this.evaluacionPredicion2Factor64();
+                    int resultado = this.evaluationPredictionFactor64();
+                    if (resultado == 0) resultado = this.evaluationPrediction2Factor64();
                     if(resultado != 0)
                     {
                         Person sujeto = listPersons[resultado];
@@ -2240,14 +2231,15 @@ namespace Sistema_Reconocimiento_Facial
         }
 
         /********** MÉTODOS EXTRAS *************/
-        public void separarMuestras()
+        public void cleanSamples()
         {
             // Especificar ruta de origen para datos de entrenamiento
-            var path = new DirectoryInfo("E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//MasCincoMuestraPorPersona");
+            var path = new DirectoryInfo("E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//MasTreceMuestraPorPersona");
             string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
 
             /************ Para quitar aquellas muestras con mas de un rostro ************/
             /************ Y aquellas en la que no es posible hallar un rostro ************/
+
             //foreach (DirectoryInfo classFolder in path.EnumerateDirectories())
             //{
             //    FileInfo[] files = GetFilesByExtensions(classFolder, ".jpg", ".png").ToArray();
@@ -2261,8 +2253,8 @@ namespace Sistema_Reconocimiento_Facial
             //        IImage img = new Mat(@file.FullName, ImreadModes.Color);
             //        CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
             //        imgGray = alignEyes(imgGray.ToImage<Gray, Byte>().Resize(250, 250, Inter.Linear, false)).ToUMat();
-            //        faceDetected = detectFaces(imgGray.ToImage<Gray, Byte>().Resize(widthFrameCamera, heightFrameCamera, Inter.Linear, false));
-            //        if (faceDetected.Count == 0)
+            //        faceDetected = detectFaces(imgGray.ToImage<Gray, Byte>().Resize(250,250, Inter.Linear, false));
+            //        if (faceDetected.Count == 0 || faceDetected.Count > 1)
             //        {
             //            myComputer.FileSystem.DeleteFile(file.FullName);
             //        }
@@ -2277,7 +2269,7 @@ namespace Sistema_Reconocimiento_Facial
             //    for (int i = 0; i < 1; i++)
             //    {
             //        FileInfo file = files[i];
-            //        myComputer.FileSystem.MoveFile(file.FullName, @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-test//MasCincoMuestraPorPersona//" + file.Name);
+            //        myComputer.FileSystem.MoveFile(file.FullName, @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-test//MasTreceMuestraPorPersona//" + file.Name);
             //    }
             //}
 
@@ -2285,37 +2277,32 @@ namespace Sistema_Reconocimiento_Facial
             {
                 string[] subDir = Directory.GetFiles(folder.ToString(), "*.jpg");
 
-                /****************** Se filtra la carpeta lfw para contener sólo carpetas con mas de una muestra, es resto se desecha   ********************/
+                /****************** Se filtra la carpeta lfw para contener sólo carpetas con mas de cinco muestra, es resto se desecha   ********************/
 
-                //if ((int)subDir.Length >= 2)
+                //if ((int)subDir.Length >= 6)
                 //{
                 //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "e://icci 2010//2018//reconocimiento facial//dataset-train//lfw-filtro/" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
                 /****************** Separación de muestras por carpetas   ********************/
-                //if ((int)subDir.Length == 2)
+                //if ((int)subDir.Length == 8)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//UnaMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), "E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//SieteMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
-                //if ((int)subDir.Length == 3)
+                //if ((int)subDir.Length == 11)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//DosMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//DiezMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
-                //if ((int)subDir.Length == 4)
+                //if ((int)subDir.Length == 14)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//TresMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//TreceMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
 
-                //if ((int)subDir.Length == 5)
+                //if ((int)subDir.Length > 14)
                 //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//CuatroMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
-                //}
-
-                //if ((int)subDir.Length >= 6)
-                //{
-                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//MasCincoMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
+                //    myComputer.FileSystem.CopyDirectory(folder.ToString(), @"E://ICCI 2010//2018//Reconocimiento Facial//Dataset-train//lfw-categorizado//MasTreceMuestraPorPersona" + folder.ToString().Substring(folder.ToString().LastIndexOf(@"\")));
                 //}
             }
         }
@@ -2334,107 +2321,270 @@ namespace Sistema_Reconocimiento_Facial
             }
             
         }
-        public int evaluacionPredicionFactor4()
+        public int evaluationPredictionFactor4()
         {
-            int resultado = 0;
-            foreach (var sujeto in listPersons)
+            int result = 0;
+            foreach (var person in listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > this.porcentajeAceptacionMax * 4)
+                if ((int)person.Value.NroVotos > this.porcentajeAceptacionMax * 4)
                 {
-                    resultado = sujeto.Key;
+                    result = person.Key;
                 }
             }
 
-            return resultado;
+            return result;
         }
-        public int evaluacionPredicionFactor16()
+        public int evaluationPredictionFactor16()
         {
-            int resultado = 0;
-            foreach (var sujeto in listPersons)
+            int result = 0;
+            foreach (var person in listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > 0.55 * 16)
+                if ((int)person.Value.NroVotos > this.porcentajeAceptacionMax * 16)
                 {
-                    resultado = sujeto.Key;
+                    result = person.Key;
                 }
             }
 
-            return resultado;
+            return result;
         }
-        public int evaluacionPredicionFactor64()
+        public int evaluationPredictionFactor64()
         {
-            int resultado = 0;
-            foreach (var sujeto in listPersons)
+            int result = 0;
+            foreach (var person in listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > 0.55 * 64)
+                if ((int)person.Value.NroVotos > this.porcentajeAceptacionMax * 64)
                 {
-                    resultado = sujeto.Key;
+                    result = person.Key;
                 }
             }
 
-            return resultado;
+            return result;
         }
-        public int evaluacionPredicion2Factor4()
+        public int evaluationPrediction2Factor4()
         {
-            int resultado = 0;
+            int result = 0;
             int mayorNroVotos = 0;
-            foreach (var sujeto in this.listPersons)
+            foreach (var person in this.listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > mayorNroVotos)
+                if ((int)person.Value.NroVotos > mayorNroVotos)
                 {
-                    mayorNroVotos = sujeto.Value.NroVotos;
-                    resultado = sujeto.Key;
+                    mayorNroVotos = person.Value.NroVotos;
+                    result = person.Key;
                 }
             }
-            if (this.listPersons[resultado].NroVotos >= this.porcentajeAceptacionMin * 4)
+            if (this.listPersons[result].NroVotos >= this.porcentajeAceptacionMin * 4)
             {
-                return resultado;
+                return result;
             }
             else
             {
                 return 0;
             }
         }
-        public int evaluacionPredicion2Factor16()
+        public int evaluationPrediction2Factor16()
         {
-            int resultado = 0;
+            int result = 0;
             int mayorNroVotos = 0;
-            foreach (var sujeto in this.listPersons)
+            foreach (var person in this.listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > mayorNroVotos)
+                if ((int)person.Value.NroVotos > mayorNroVotos)
                 {
-                    mayorNroVotos = sujeto.Value.NroVotos;
-                    resultado = sujeto.Key;
+                    mayorNroVotos = person.Value.NroVotos;
+                    result = person.Key;
                 }
             }
-            if (this.listPersons[resultado].NroVotos >= this.porcentajeAceptacionMin * 16)
+            if (this.listPersons[result].NroVotos >= this.porcentajeAceptacionMin * 16)
             {
-                return resultado;
+                return result;
             }
             else
             {
                 return 0;
             }
         }
-        public int evaluacionPredicion2Factor64()
+        public int evaluationPrediction2Factor64()
         {
-            int resultado = 0;
+            int result = 0;
             int mayorNroVotos = 0;
-            foreach (var sujeto in this.listPersons)
+            foreach (var person in this.listPersons)
             {
-                if ((int)sujeto.Value.NroVotos > mayorNroVotos)
+                if ((int)person.Value.NroVotos > mayorNroVotos)
                 {
-                    mayorNroVotos = sujeto.Value.NroVotos;
-                    resultado = sujeto.Key;
+                    mayorNroVotos = person.Value.NroVotos;
+                    result = person.Key;
                 }
             }
-            if (this.listPersons[resultado].NroVotos >= this.porcentajeAceptacionMin * 64)
+            if (this.listPersons[result].NroVotos >= this.porcentajeAceptacionMin * 64)
             {
-                return resultado;
+                return result;
             }
             else
             {
                 return 0;
             }
+        }
+
+        private void btnSeleccionarRutaMuestrasEntrenamiento_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    string path = fbd.SelectedPath;
+                    this.tbRutaMuestrasEntrenamiento.Text = path;
+                }
+            }
+        }
+
+        private void btnEntrenar_Click(object sender, EventArgs e)
+        {
+            string pathOrigin = tbRutaMuestrasEntrenamiento.Text;
+
+            loadDatatraining(ref dataTrain, ref labelTrain, @pathOrigin);
+            this.C = Convert.ToInt32(this.tbC.Text);
+            this.gamma = Convert.ToDouble(this.tbGamma.Text);
+            this.coef0 = Convert.ToDouble(this.tbCoef0.Text);
+            this.degree = Convert.ToInt32(this.tbDegree.Text);
+            this.nu = Convert.ToDouble(this.tbNu.Text);
+            this.P = Convert.ToDouble(this.tbP.Text);
+            switch (this.cbFactorFragmentacionTrain.Text)
+            {
+                case "Factor 4":
+                {
+                        trainingDataFactor4();
+                        MessageBox.Show("Aviso: " + "Datos entrenados exitosamente", "Factor 4");
+                        break;
+                }
+                case "Factor 16":
+                {
+                        trainingDataFactor16();
+                        MessageBox.Show("Aviso: " + "Datos entrenados exitosamente", "Factor 16");
+                        break;
+                }
+                case "Factor 64":
+                {
+                        trainingDataFactor64();
+                        MessageBox.Show("Aviso: " + "Datos entrenados exitosamente", "Factor 64");
+                        break;
+                }
+            }
+        }
+
+        private void btnTestear_Click(object sender, EventArgs e)
+        {
+            var pathOrigin = new DirectoryInfo(@tbRutaMuetrasTest.Text);
+            this.sujetosEvaluados = new Dictionary<string, string>();
+            int nroSujetosTest = 0;
+            int nroSujetosIdentificados = 0;
+            double porcentajeAciertos = 0;
+            this.porcentajeAceptacionMax = Convert.ToDouble(this.tbAceptacionMax.Text);
+            this.porcentajeAceptacionMin = Convert.ToDouble(this.tbAceptacionMin.Text);
+            FileInfo[] files = GetFilesByExtensions(@pathOrigin, ".jpg", ".png").ToArray();
+            for (int i = 0; i < files.Length; i++)
+            {
+                nroSujetosTest += 1;
+                FileInfo file = files[i];
+                IImage img = new Mat(file.FullName, ImreadModes.Color);
+                this.sujetoDesconocido = file.Name;
+                if (cbFactorFragmentacionTest.Text == "Factor 4") this.testItFragmentFactor4(img);
+                if (cbFactorFragmentacionTest.Text == "Factor 16") this.testItFragmentFactor16(img);
+                if (cbFactorFragmentacionTest.Text == "Factor 64") this.testItFragmentFactor64(img);
+
+                this.sujetosEvaluados.Add(this.sujetoDesconocido, this.sujetoIdentificado);
+            }
+            
+            foreach (var key in this.sujetosEvaluados.Keys)
+            {
+                if (key.ToString().Contains(this.sujetosEvaluados[key].ToString()))
+                {
+                    nroSujetosIdentificados += 1;
+                }
+            }
+            //Mostrar resultados
+            this.tbSujetosTest.Text = Convert.ToString(nroSujetosTest);
+            this.tbSujetosIdentificados.Text = Convert.ToString(nroSujetosIdentificados);
+            this.tbSujetosSinIdentificar.Text = Convert.ToString(nroSujetosTest - nroSujetosIdentificados);
+            porcentajeAciertos = (Convert.ToDouble(nroSujetosIdentificados) / Convert.ToDouble(nroSujetosTest)) * 100;
+            this.tbPorcetajeAciertos.Text = porcentajeAciertos.ToString("#0.00#"); ;
+        }
+
+        private void btnSeleccionarMuestrasTest_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    string path = fbd.SelectedPath;
+                    this.tbRutaMuetrasTest.Text = path;
+                }
+            }
+        }
+
+        private void cbFactorFragmentacionTrain_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch(this.cbFactorFragmentacionTrain.Text)
+            {
+                case "Factor 4":
+                    {
+                        this.tbWinsize.Text = Convert.ToString(32);
+                        this.tbBlocksize.Text = Convert.ToString(16);
+                        this.tbCellsize.Text = Convert.ToString(8);
+                        this.tbNbins.Text = Convert.ToString(9);
+                        break;
+                    }
+                case "Factor 16":
+                    {
+                        this.tbWinsize.Text = Convert.ToString(16);
+                        this.tbBlocksize.Text = Convert.ToString(8);
+                        this.tbCellsize.Text = Convert.ToString(4);
+                        this.tbNbins.Text = Convert.ToString(9);
+                        break;
+                    }
+                case "Factor 64":
+                    {
+                        this.tbWinsize.Text = Convert.ToString(8);
+                        this.tbBlocksize.Text = Convert.ToString(4);
+                        this.tbCellsize.Text = Convert.ToString(2);
+                        this.tbNbins.Text = Convert.ToString(9);
+                        break;
+                    }
+            }
+        }
+
+        private void btnConectarCamara_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string user = this.tbUser.Text;
+                string pass = this.tbPass.Text;
+                string ip = this.tbDirIP.Text;
+                string port = this.tbPort.Text;
+                string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/102/";
+                //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
+                this._capture = new VideoCapture(strConnection);
+                //_capture = new VideoCapture();
+                _capture.ImageGrabbed += ProcessFrame;
+                _capture.Start();
+                _frame = new Mat();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Eror: " + ex.Message);
+            }
+        }
+
+        private void btnIniciarReconocimiento_Click(object sender, EventArgs e)
+        {
+            this.isWorking = true;
+        }
+
+        private void btnDetenerReconocimiento_Click(object sender, EventArgs e)
+        {
+            this.isWorking = false;
         }
     }
 }
