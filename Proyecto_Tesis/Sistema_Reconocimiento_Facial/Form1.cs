@@ -25,8 +25,8 @@ namespace Sistema_Reconocimiento_Facial
     {
         private static string pathCascadeFace = "haarcascade_frontalface_default.xml";
         private static string pathCascadeEye = "haarcascade_eye.xml";
-        private int WIDTH_FRAME_CAMERA = 640;
-        private int HEIGHT_FRAME_CAMERA = 360;
+        private int WIDTH_FRAME_CAMERA = 250;
+        private int HEIGHT_FRAME_CAMERA = 250;
         private double porcentajeAceptacionMax;
         private double porcentajeAceptacionMin;
         private Computer myComputer = new Computer();
