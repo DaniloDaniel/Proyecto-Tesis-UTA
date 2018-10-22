@@ -25,8 +25,10 @@ namespace Sistema_Reconocimiento_Facial
     {
         private static string pathCascadeFace = "haarcascade_frontalface_default.xml";
         private static string pathCascadeEye = "haarcascade_eye.xml";
-        private int WIDTH_FRAME_CAMERA = 250;
-        private int HEIGHT_FRAME_CAMERA = 250;
+        private int WIDTH_FRAME_CAMERA = 1920;
+        private int HEIGHT_FRAME_CAMERA = 1080;
+        private int WIDTH_WINDOW = 640;
+        private int HEIGHT_WINDOW = 360;
         private double porcentajeAceptacionMax;
         private double porcentajeAceptacionMin;
         private Computer myComputer = new Computer();
@@ -327,9 +329,12 @@ namespace Sistema_Reconocimiento_Facial
         //Variables Extras
         private static int conteoRostrosFragmentados = 0;
         private int conteoFrames = 0;
-        private int MAX_FRAME = 5;
+        private int MAX_FRAME = 3;
+        private int FPS = 29;
         private Boolean isWorking = false;
         private Dictionary<string,string> sujetosEvaluados;
+        private DataTable dtSujetos;
+        private int nroSujetosHallados=0;
 
         public Form1()
         {
@@ -343,6 +348,8 @@ namespace Sistema_Reconocimiento_Facial
                 //_frame = new Mat();
 
                 //IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\bin\x64\Debug\resources\data-test\TresMuestraPorPersona\Abdullah_0006.jpg", ImreadModes.Color);
+
+                this.crearTabla();
             }
             catch (Exception ex)
             {
@@ -350,22 +357,55 @@ namespace Sistema_Reconocimiento_Facial
             }
         }
 
+        private void crearTabla()
+        {
+            this.dtSujetos = new DataTable("Sujeto-Hallados");
+            this.dtSujetos.Columns.Add("id", System.Type.GetType("System.Int32"));
+            this.dtSujetos.Columns.Add("nombre", System.Type.GetType("System.String"));
+            this.dtSujetos.Columns.Add("fecha_registro", System.Type.GetType("System.String"));
+            
+            //Relacionar nuestro DataGRidView con nuestro DataTable
+            this.dgvSujetos.DataSource = this.dtSujetos;
+        }
+
         private void ProcessFrame(object sender, EventArgs e)
         {
-            if (_capture != null && _capture.Ptr != IntPtr.Zero)
+            try
             {
-                _capture.Retrieve(_frame, 0);
-                if (this.conteoFrames == 20) this.conteoFrames = 0;
-                this.conteoFrames += 1;
-                Console.WriteLine(this.conteoFrames);
-                if((this.conteoFrames % this.MAX_FRAME == 0) && this.isWorking == true)
+                if (_capture != null && _capture.Ptr != IntPtr.Zero)
                 {
-                    this.testItFragmentFactor4(_frame.ToImage<Bgr, byte>());
+                    _capture.Retrieve(_frame, 0);
+                    if (this.conteoFrames == 29) this.conteoFrames = 0;
+                    this.conteoFrames += 1;
+                    if (this.isWorking)
+                    {
+                        if (this.conteoFrames % 10 == 0)
+                        {
+                            List<Face> faceDetected = new List<Face>();
+                            faceDetected = detectFaces(_frame.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Intenta buscar un rostro en el frame
+                            if (faceDetected.Count > 0)
+                            {
+                                this.testItFragmentFactor4(_frame.ToImage<Bgr, byte>());
+                            }
+                            else
+                            {
+                                this.pbImagenOriginal.Image = _frame.ToImage<Bgr, Byte>().Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
+                            }
+                        }
+                        else
+                        {
+                            this.pbImagenOriginal.Image = _frame.ToImage<Bgr, Byte>().Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
+                        }
+                    }
+                    else
+                    {
+                        this.pbImagenOriginal.Image = _frame.ToImage<Bgr, Byte>().Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
+                    }
                 }
-                else
-                {
-                    this.pbImagenOriginal.Image = _frame.Bitmap;
-                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Módulo .:. ProcessFrame");
             }
         }
 
@@ -431,7 +471,7 @@ namespace Sistema_Reconocimiento_Facial
             CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
             try
             {
-                frame = frame.Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false);
+                frame = frame.Resize(250, 250, Inter.Linear, false);
                 frame = alignEyes(frame);
                 //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
                 foreach (Rectangle face in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
@@ -500,7 +540,7 @@ namespace Sistema_Reconocimiento_Facial
                         CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
                         //Todas las muestras deben ser preprocesadas.
-                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false));
+                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(250, 250, Inter.Linear, false));
                         //Etiquetando datos de entrada
                         labelTrain[imgCount, 0] = (int)classID;
                         //Agregando una imagen de tipo Mat a la lista
@@ -522,7 +562,6 @@ namespace Sistema_Reconocimiento_Facial
             List<Mat> listImgMat = new List<Mat>();
             try
             {
-                
                 //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
                 foreach ( Face person in facesDetected)
                 {
@@ -613,7 +652,6 @@ namespace Sistema_Reconocimiento_Facial
                 for (int numPerson = 0; numPerson < faceDetected.Count(); numPerson++)
                 {
                     float result = model.Predict(dataTestMat.Row(numPerson));//Indicar la fila ha predecir
-                    Console.WriteLine("El sujeto " + numPerson + "corresponde a la clase: " + result.ToString());
                     Face face = faceDetected.ElementAt(numPerson);
                     //Pintar y etiquetar
                     string nombre = listSearch[(int)result];
@@ -766,68 +804,82 @@ namespace Sistema_Reconocimiento_Facial
 
             UMat frameGray = new UMat();
             List<Face> faceDetected = new List<Face>();
-
-            CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-            Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
-
-            faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
-            dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
-
-            this.fragmentImageFactor4(ref dataTest);
-            //SSi encuentra al menos un rostro
-            if (dataTest.Count() >= 1)
+            try
             {
-                //calculateDescriptorsHOG(dataTest, ref dataTestHOG, out sizeDescriptor, out countDescriptors);
-                this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi1, ref dataRoi1HOG);
-                this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi2, ref dataRoi2HOG);
-                this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi3, ref dataRoi3HOG);
-                this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi4, ref dataRoi4HOG);
+                CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+                Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
 
-                //Mat dataTestMat = new Mat(new Size(sizeDescriptor, countDescriptors), DepthType.Cv32F, 1); //	Mat(Size, DepthType, Int32)
-                this.dataRoi1Mat = new Mat(new Size(dataRoi1HOG[0].Count(), dataRoi1HOG.Count()), DepthType.Cv32F, 1);
-                this.dataRoi2Mat = new Mat(new Size(dataRoi2HOG[0].Count(), dataRoi2HOG.Count()), DepthType.Cv32F, 1);
-                this.dataRoi3Mat = new Mat(new Size(dataRoi3HOG[0].Count(), dataRoi3HOG.Count()), DepthType.Cv32F, 1);
-                this.dataRoi4Mat = new Mat(new Size(dataRoi4HOG[0].Count(), dataRoi4HOG.Count()), DepthType.Cv32F, 1);
+                faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Encuentra una lista de rostros hallados en el frame.
+                dataTest = preProcessingDataTest(faceDetected); //Realiza una preprocesado a todos los rostros hallados.
 
-                //convertVectorToMatrix(ref dataTestMat, dataTestHOG);
-                this.convertFragmentVectorToMatrixFactor4(ref dataRoi1Mat, dataRoi1HOG);
-                this.convertFragmentVectorToMatrixFactor4(ref dataRoi2Mat, dataRoi2HOG);
-                this.convertFragmentVectorToMatrixFactor4(ref dataRoi3Mat, dataRoi3HOG);
-                this.convertFragmentVectorToMatrixFactor4(ref dataRoi4Mat, dataRoi4HOG);
-
-                for (int numPerson = 0; numPerson < faceDetected.Count(); numPerson++)
+                this.fragmentImageFactor4(ref dataTest);
+                //SSi encuentra al menos un rostro
+                if (dataTest.Count() >= 1)
                 {
-                    //Indicar la fila ha predecir
-                    this.acumuladorPrediccion( (int) modelRoi1.Predict(dataRoi1Mat.Row(numPerson)) );
-                    this.acumuladorPrediccion( (int) modelRoi2.Predict(dataRoi2Mat.Row(numPerson)) );
-                    this.acumuladorPrediccion( (int) modelRoi3.Predict(dataRoi3Mat.Row(numPerson)) );
-                    this.acumuladorPrediccion( (int) modelRoi4.Predict(dataRoi4Mat.Row(numPerson)) );
+                    //calculateDescriptorsHOG(dataTest, ref dataTestHOG, out sizeDescriptor, out countDescriptors);
+                    this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi1, ref dataRoi1HOG);
+                    this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi2, ref dataRoi2HOG);
+                    this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi3, ref dataRoi3HOG);
+                    this.calculateFragmentDescriptorsHOGFactor4(ref dataRoi4, ref dataRoi4HOG);
 
-                    int resultado = this.evaluationPredictionFactor4();
-                    if (resultado == 0) resultado = this.evaluationPrediction2Factor4();
+                    //Mat dataTestMat = new Mat(new Size(sizeDescriptor, countDescriptors), DepthType.Cv32F, 1); //	Mat(Size, DepthType, Int32)
+                    this.dataRoi1Mat = new Mat(new Size(dataRoi1HOG[0].Count(), dataRoi1HOG.Count()), DepthType.Cv32F, 1);
+                    this.dataRoi2Mat = new Mat(new Size(dataRoi2HOG[0].Count(), dataRoi2HOG.Count()), DepthType.Cv32F, 1);
+                    this.dataRoi3Mat = new Mat(new Size(dataRoi3HOG[0].Count(), dataRoi3HOG.Count()), DepthType.Cv32F, 1);
+                    this.dataRoi4Mat = new Mat(new Size(dataRoi4HOG[0].Count(), dataRoi4HOG.Count()), DepthType.Cv32F, 1);
 
-                    if (resultado != 0)
+                    //convertVectorToMatrix(ref dataTestMat, dataTestHOG);
+                    this.convertFragmentVectorToMatrixFactor4(ref dataRoi1Mat, dataRoi1HOG);
+                    this.convertFragmentVectorToMatrixFactor4(ref dataRoi2Mat, dataRoi2HOG);
+                    this.convertFragmentVectorToMatrixFactor4(ref dataRoi3Mat, dataRoi3HOG);
+                    this.convertFragmentVectorToMatrixFactor4(ref dataRoi4Mat, dataRoi4HOG);
+
+                    for (int numPerson = 0; numPerson < faceDetected.Count(); numPerson++)
                     {
-                        Person sujeto = listPersons[resultado];
-                        Face face = faceDetected.ElementAt(numPerson);
-                        //Pintar y etiquetar
-                        string nombre = listSearch[resultado];
-                        CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                        Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
-                        this.sujetoIdentificado = sujeto.Nombre;
+                        //Indicar la fila ha predecir
+                        this.acumuladorPrediccion((int)modelRoi1.Predict(dataRoi1Mat.Row(numPerson)));
+                        this.acumuladorPrediccion((int)modelRoi2.Predict(dataRoi2Mat.Row(numPerson)));
+                        this.acumuladorPrediccion((int)modelRoi3.Predict(dataRoi3Mat.Row(numPerson)));
+                        this.acumuladorPrediccion((int)modelRoi4.Predict(dataRoi4Mat.Row(numPerson)));
+
+                        int resultado = this.evaluationPredictionFactor4();
+                        if (resultado == 0) resultado = this.evaluationPrediction2Factor4();
+
+                        if (resultado != 0)
+                        {
+                            Person sujeto = listPersons[resultado];
+                            Face face = faceDetected.ElementAt(numPerson);
+                            //Pintar y etiquetar
+                            string nombre = listSearch[resultado];
+                            CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
+                            this.sujetoIdentificado = sujeto.Nombre;
+                            Console.WriteLine(this.sujetoIdentificado);
+                            //Se añade el sujeto encontrado
+                            DataRow row = this.dtSujetos.NewRow();
+                            this.nroSujetosHallados += 1;
+                            row["id"] = this.nroSujetosHallados;
+                            row["nombre"] = Convert.ToString(this.sujetoIdentificado);
+                            row["fecha_registro"] = Convert.ToString(DateTime.Now);
+                            this.dtSujetos.Rows.Add(row);
+                        }
+                        else
+                        {
+                            Console.WriteLine("No fue posible identificar la muesta ingresada");
+                            this.sujetoIdentificado = "No Identificado";
+                        }
+                        this.limpiarAcumuladorPrediccion();
+                        this.pbImagenOriginal.Image = frameBgr.Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
                     }
-                    else
-                    {
-                        Console.WriteLine("No fue posible identificar la muesta ingresada");
-                        this.sujetoIdentificado = "No Identificado";
-                    }
-                    this.limpiarAcumuladorPrediccion();
-                    this.pbImagenOriginal.Image = frameBgr.Bitmap;
+                }
+                else
+                {
+                    this.sujetoIdentificado = "No Hay Rostro";
+                    this.pbImagenOriginal.Image = frameBgr.Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
                 }
             }
-            else
+            catch (Exception ex)
             {
-                this.pbImagenOriginal.Image = frameBgr.Bitmap;
+                MessageBox.Show("Error: " + ex.Message, "Módulo .:. testItFragmentFactor4");
             }
         }
         public void trainingDataFactor4()
@@ -1127,7 +1179,6 @@ namespace Sistema_Reconocimiento_Facial
                         //Pintar y etiquetar
                         string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                        Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
                         this.sujetoIdentificado = sujeto.Nombre;
                     }
                     else
@@ -1936,7 +1987,6 @@ namespace Sistema_Reconocimiento_Facial
                         //Pintar y etiquetar
                         string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
-                        Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
                         this.sujetoIdentificado = sujeto.Nombre;
                     }
                     else
@@ -2310,7 +2360,6 @@ namespace Sistema_Reconocimiento_Facial
         {
             Person sujeto = this.listPersons[prediccion];
             sujeto.NroVotos += 1;
-            //Console.WriteLine("Sujeto: {0} tiene {1} votos.",sujeto.Nombre, sujeto.NroVotos);
         }
         public void limpiarAcumuladorPrediccion()
         {
@@ -2493,6 +2542,7 @@ namespace Sistema_Reconocimiento_Facial
                 if (cbFactorFragmentacionTest.Text == "Factor 64") this.testItFragmentFactor64(img);
 
                 this.sujetosEvaluados.Add(this.sujetoDesconocido, this.sujetoIdentificado);
+                Console.WriteLine("{0} - {1}", this.sujetoDesconocido, this.sujetoIdentificado);
             }
             
             foreach (var key in this.sujetosEvaluados.Keys)
@@ -2565,8 +2615,8 @@ namespace Sistema_Reconocimiento_Facial
                 string port = this.tbPort.Text;
                 string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/102/";
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
-                this._capture = new VideoCapture(strConnection);
-                //_capture = new VideoCapture();
+                //this._capture = new VideoCapture(strConnection);
+                _capture = new VideoCapture("C://Users//FGG//Desktop//resources//Video_Prueba_Danilo.mp4");
                 _capture.ImageGrabbed += ProcessFrame;
                 _capture.Start();
                 _frame = new Mat();
@@ -2580,6 +2630,9 @@ namespace Sistema_Reconocimiento_Facial
         private void btnIniciarReconocimiento_Click(object sender, EventArgs e)
         {
             this.isWorking = true;
+            this.nroSujetosHallados = 0;
+            this.dtSujetos.Clear();
+            this.dgvSujetos.DataSource = this.dtSujetos;
         }
 
         private void btnDetenerReconocimiento_Click(object sender, EventArgs e)
