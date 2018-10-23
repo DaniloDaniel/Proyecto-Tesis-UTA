@@ -95,6 +95,7 @@
             this.btnSeleccionarMuestrasTest = new System.Windows.Forms.Button();
             this.tbRutaMuetrasTest = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
+            this.btnCapturar = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -125,11 +126,12 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1034, 629);
+            this.tabControl1.Size = new System.Drawing.Size(1034, 683);
             this.tabControl1.TabIndex = 3;
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.btnCapturar);
             this.tabPage1.Controls.Add(this.groupBox6);
             this.tabPage1.Controls.Add(this.btnDetenerReconocimiento);
             this.tabPage1.Controls.Add(this.btnIniciarReconocimiento);
@@ -139,7 +141,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1026, 603);
+            this.tabPage1.Size = new System.Drawing.Size(1026, 657);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Vivo";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -156,9 +158,12 @@
             // 
             // dgvSujetos
             // 
+            this.dgvSujetos.AllowUserToAddRows = false;
+            this.dgvSujetos.AllowUserToDeleteRows = false;
             this.dgvSujetos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvSujetos.Location = new System.Drawing.Point(6, 31);
             this.dgvSujetos.Name = "dgvSujetos";
+            this.dgvSujetos.ReadOnly = true;
             this.dgvSujetos.Size = new System.Drawing.Size(336, 226);
             this.dgvSujetos.TabIndex = 6;
             // 
@@ -762,11 +767,21 @@
             this.label9.TabIndex = 3;
             this.label9.Text = "Ruta muestras test:";
             // 
+            // btnCapturar
+            // 
+            this.btnCapturar.Location = new System.Drawing.Point(321, 401);
+            this.btnCapturar.Name = "btnCapturar";
+            this.btnCapturar.Size = new System.Drawing.Size(94, 39);
+            this.btnCapturar.TabIndex = 9;
+            this.btnCapturar.Text = "&Capturar";
+            this.btnCapturar.UseVisualStyleBackColor = true;
+            this.btnCapturar.Click += new System.EventHandler(this.btnCapturar_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1058, 669);
+            this.ClientSize = new System.Drawing.Size(1058, 707);
             this.Controls.Add(this.tabControl1);
             this.Name = "Form1";
             this.Text = "HKM | Sistema de Reconocimiento Facial ";
@@ -861,6 +876,7 @@
         private System.Windows.Forms.Button btnDetenerReconocimiento;
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.DataGridView dgvSujetos;
+        private System.Windows.Forms.Button btnCapturar;
     }
 }
 

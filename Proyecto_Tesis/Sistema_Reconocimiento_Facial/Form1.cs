@@ -375,7 +375,16 @@ namespace Sistema_Reconocimiento_Facial
                 if (_capture != null && _capture.Ptr != IntPtr.Zero)
                 {
                     _capture.Retrieve(_frame, 0);
-                    if (this.conteoFrames == 29) this.conteoFrames = 0;
+                    // Revisar el acoumulador de puntuación de los sujetos cada 5 seg.
+                    // y reinicar lo acumuladores personales
+                    if (this.conteoFrames == 145)  
+                    {
+                        //Se revisa si el lapso definido (5 seg.) fue identificado algún sujeto
+                        //Posterior, se reinician los acumuladores
+                        this.evaluacionConteoFramesPositivos();
+                        this.limpiarConteoFramesPositivos();
+                        this.conteoFrames = 0;
+                    }
                     this.conteoFrames += 1;
                     if (this.isWorking)
                     {
@@ -530,6 +539,7 @@ namespace Sistema_Reconocimiento_Facial
                     Person sujeto = new Person();
                     sujeto.Nombre = nameFolder;
                     sujeto.NroVotos = 0;
+                    sujeto.ConteoFramePositivos = 0;
                     listPersons.Add(classID,sujeto);
                     // Iterar por carpeta, buscando imágenes
                     for (int i = 0; i < files.Length; i++)
@@ -848,19 +858,13 @@ namespace Sistema_Reconocimiento_Facial
                         if (resultado != 0)
                         {
                             Person sujeto = listPersons[resultado];
+                            sujeto.ConteoFramePositivos += 1;
                             Face face = faceDetected.ElementAt(numPerson);
                             //Pintar y etiquetar
                             string nombre = listSearch[resultado];
                             CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
                             this.sujetoIdentificado = sujeto.Nombre;
                             Console.WriteLine(this.sujetoIdentificado);
-                            //Se añade el sujeto encontrado
-                            DataRow row = this.dtSujetos.NewRow();
-                            this.nroSujetosHallados += 1;
-                            row["id"] = this.nroSujetosHallados;
-                            row["nombre"] = Convert.ToString(this.sujetoIdentificado);
-                            row["fecha_registro"] = Convert.ToString(DateTime.Now);
-                            this.dtSujetos.Rows.Add(row);
                         }
                         else
                         {
@@ -2368,7 +2372,31 @@ namespace Sistema_Reconocimiento_Facial
                 Person sujeto = this.listPersons[key];
                 sujeto.NroVotos = 0;
             }
-            
+        }
+        public void limpiarConteoFramesPositivos()
+        {
+            foreach (var key in this.listPersons.Keys)
+            {
+                Person sujeto = this.listPersons[key];
+                sujeto.ConteoFramePositivos = 0;
+            }
+        }
+        public void evaluacionConteoFramesPositivos()
+        {
+            foreach (var person in listPersons)
+            {
+                if ((int)person.Value.ConteoFramePositivos > 4)
+                {
+                    //Se añade el sujeto encontrado
+                    DataRow row = this.dtSujetos.NewRow();
+                    this.nroSujetosHallados += 1;
+                    row["id"] = this.nroSujetosHallados;
+                    row["nombre"] = person.Value.Nombre;
+                    row["fecha_registro"] = Convert.ToString(DateTime.Now);
+                    this.dtSujetos.Rows.Add(row);
+                    this.dgvSujetos.DataSource = this.dtSujetos;
+                }
+            }
         }
         public int evaluationPredictionFactor4()
         {
@@ -2616,7 +2644,7 @@ namespace Sistema_Reconocimiento_Facial
                 string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/102/";
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
                 //this._capture = new VideoCapture(strConnection);
-                _capture = new VideoCapture("C://Users//FGG//Desktop//resources//Video_Prueba_Danilo.mp4");
+                _capture = new VideoCapture("C://Users//DaniloDaniel//Desktop//resources//Video_Prueba_Danilo_1920x1080.mp4");
                 _capture.ImageGrabbed += ProcessFrame;
                 _capture.Start();
                 _frame = new Mat();
@@ -2638,6 +2666,24 @@ namespace Sistema_Reconocimiento_Facial
         private void btnDetenerReconocimiento_Click(object sender, EventArgs e)
         {
             this.isWorking = false;
+        }
+
+        private void btnCapturar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Image<Bgr, Byte> captura = this._frame.ToImage<Bgr, Byte>();
+                SaveFileDialog dialog = new SaveFileDialog();
+                dialog.Filter = "JPG(*.JPG)|*.jpg";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    captura.Save(dialog.FileName);
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Evento .:. btnCapturar_Click");
+            }
         }
     }
 }

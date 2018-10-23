@@ -11,6 +11,7 @@ namespace Sistema_Reconocimiento_Facial
         private int _idClase;
         private string _nombre;
         private int _nroVotos;
+        private int _conteoFramePositivos;
 
         public Person()
         { }
@@ -31,6 +32,12 @@ namespace Sistema_Reconocimiento_Facial
         {
             get { return _nroVotos; }
             set { _nroVotos = value; }
+        }
+
+        public int ConteoFramePositivos
+        {
+            get { return _conteoFramePositivos; }
+            set { _conteoFramePositivos = value; }
         }
     }
 }
