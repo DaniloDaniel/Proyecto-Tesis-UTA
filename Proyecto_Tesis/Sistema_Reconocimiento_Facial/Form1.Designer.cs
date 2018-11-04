@@ -31,6 +31,7 @@
             this.pbImagenOriginal = new System.Windows.Forms.PictureBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.btnCapturar = new System.Windows.Forms.Button();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.dgvSujetos = new System.Windows.Forms.DataGridView();
             this.btnDetenerReconocimiento = new System.Windows.Forms.Button();
@@ -95,7 +96,6 @@
             this.btnSeleccionarMuestrasTest = new System.Windows.Forms.Button();
             this.tbRutaMuetrasTest = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
-            this.btnCapturar = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -145,6 +145,16 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Vivo";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // btnCapturar
+            // 
+            this.btnCapturar.Location = new System.Drawing.Point(261, 441);
+            this.btnCapturar.Name = "btnCapturar";
+            this.btnCapturar.Size = new System.Drawing.Size(94, 39);
+            this.btnCapturar.TabIndex = 9;
+            this.btnCapturar.Text = "&Capturar";
+            this.btnCapturar.UseVisualStyleBackColor = true;
+            this.btnCapturar.Click += new System.EventHandler(this.btnCapturar_Click);
             // 
             // groupBox6
             // 
@@ -295,7 +305,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1026, 603);
+            this.tabPage2.Size = new System.Drawing.Size(1026, 657);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Entrenamiento";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -576,7 +586,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1026, 603);
+            this.tabPage3.Size = new System.Drawing.Size(1026, 657);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Prueba Estática";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -766,16 +776,6 @@
             this.label9.Size = new System.Drawing.Size(98, 13);
             this.label9.TabIndex = 3;
             this.label9.Text = "Ruta muestras test:";
-            // 
-            // btnCapturar
-            // 
-            this.btnCapturar.Location = new System.Drawing.Point(321, 401);
-            this.btnCapturar.Name = "btnCapturar";
-            this.btnCapturar.Size = new System.Drawing.Size(94, 39);
-            this.btnCapturar.TabIndex = 9;
-            this.btnCapturar.Text = "&Capturar";
-            this.btnCapturar.UseVisualStyleBackColor = true;
-            this.btnCapturar.Click += new System.EventHandler(this.btnCapturar_Click);
             // 
             // Form1
             // 
