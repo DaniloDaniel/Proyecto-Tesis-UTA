@@ -25,8 +25,8 @@ namespace Sistema_Reconocimiento_Facial
     {
         private static string pathCascadeFace = "haarcascade_frontalface_default.xml";
         private static string pathCascadeEye = "haarcascade_eye.xml";
-        private int WIDTH_FRAME_CAMERA = 640;
-        private int HEIGHT_FRAME_CAMERA = 360;
+        private int WIDTH_FRAME_CAMERA = 1920;
+        private int HEIGHT_FRAME_CAMERA = 1080;
         private int WIDTH_WINDOW = 640;
         private int HEIGHT_WINDOW = 360;
         private double porcentajeAceptacionMax;
@@ -333,6 +333,8 @@ namespace Sistema_Reconocimiento_Facial
         private Dictionary<string,string> sujetosEvaluados;
         private DataTable dtSujetos;
         private int nroSujetosHallados=0;
+        private VideoWriter VideoW;
+        private Boolean isRecording = false;
 
         public Form1()
         {
@@ -366,6 +368,7 @@ namespace Sistema_Reconocimiento_Facial
                 if (_capture != null && _capture.Ptr != IntPtr.Zero)
                 {
                     _capture.Retrieve(_frame, 0);
+                    if (this.isRecording) this.VideoW.Write(_frame);
                     // Revisar el acoumulador de puntuación de los sujetos cada 5 seg.
                     // y reinicar lo acumuladores personales
                     if (this.conteoFrames == 100 && this.isWorking==true)
@@ -389,17 +392,20 @@ namespace Sistema_Reconocimiento_Facial
                             }
                             else
                             {
-                                this.pbImagenOriginal.Image = this.evaluationIfDrawFaces(_frame).Bitmap;
+                                this.pbImagenOriginal.Image = _frame.ToImage<Bgr, Byte>().Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
+                                //this.pbImagenOriginal.Image = this.evaluationIfDrawFaces(_frame).Bitmap;
                             }
                         }
                         else
                         {
-                            this.pbImagenOriginal.Image = this.evaluationIfDrawFaces(_frame).Bitmap;
+                            this.pbImagenOriginal.Image = _frame.ToImage<Bgr, Byte>().Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
+                            //this.pbImagenOriginal.Image = this.evaluationIfDrawFaces(_frame).Bitmap;
                         }
                     }
                     else
                     {
-                        this.pbImagenOriginal.Image = this.evaluationIfDrawFaces(_frame).Bitmap;
+                        this.pbImagenOriginal.Image = _frame.ToImage<Bgr, Byte>().Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false).Bitmap;
+                        //this.pbImagenOriginal.Image = this.evaluationIfDrawFaces(_frame).Bitmap;
                     }
                 }
             }
@@ -471,7 +477,7 @@ namespace Sistema_Reconocimiento_Facial
             CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
             try
             {
-                frame = frame.Resize(640, 360, Inter.Linear, false);
+                frame = frame.Resize(1920, 1080, Inter.Linear, false);
                 frame = alignEyes(frame);
                 //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
                 foreach (Rectangle face in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
@@ -541,7 +547,7 @@ namespace Sistema_Reconocimiento_Facial
                         CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
                         //Todas las muestras deben ser preprocesadas.
-                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(640, 360, Inter.Linear, false));
+                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(1920, 1080, Inter.Linear, false));
                         //Etiquetando datos de entrada
                         labelTrain[imgCount, 0] = (int)classID;
                         //Agregando una imagen de tipo Mat a la lista
@@ -2284,7 +2290,7 @@ namespace Sistema_Reconocimiento_Facial
             {
                 foreach (Rectangle faceRec in faceDetector.DetectMultiScale(_frame_aux, 1.1, 10, new Size(20, 20), Size.Empty))
                 {
-                    CvInvoke.Rectangle(_frame_aux, faceRec, new Bgr(Color.Red).MCvScalar, 2);
+                    CvInvoke.Rectangle(_frame_aux, faceRec, new Bgr(Color.GreenYellow).MCvScalar, 2);
                 }
             }
             return _frame_aux;
@@ -2310,8 +2316,8 @@ namespace Sistema_Reconocimiento_Facial
 
                     IImage img = new Mat(@file.FullName, ImreadModes.Color);
                     CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                    imgGray = alignEyes(imgGray.ToImage<Gray, Byte>().Resize(640, 360, Inter.Linear, false)).ToUMat();
-                    faceDetected = detectFaces(imgGray.ToImage<Gray, Byte>().Resize(640, 360, Inter.Linear, false));
+                    imgGray = alignEyes(imgGray.ToImage<Gray, Byte>().Resize(1920, 1080, Inter.Linear, false)).ToUMat();
+                    faceDetected = detectFaces(imgGray.ToImage<Gray, Byte>().Resize(1920, 1080, Inter.Linear, false));
                     if (faceDetected.Count == 0 || faceDetected.Count > 1)
                     {
                         myComputer.FileSystem.DeleteFile(file.FullName);
@@ -2645,7 +2651,7 @@ namespace Sistema_Reconocimiento_Facial
                 string pass = this.tbPass.Text;
                 string ip = this.tbDirIP.Text;
                 string port = this.tbPort.Text;
-                string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/102/";
+                string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/101/";
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
                 this._capture = new VideoCapture(strConnection);
                 //_capture = new VideoCapture("C://Users//DaniloDaniel//Desktop//resources//Video_Prueba_Danilo2_1920x1080.mp4");
@@ -2688,6 +2694,21 @@ namespace Sistema_Reconocimiento_Facial
             {
                 MessageBox.Show("Error: " + ex.Message, "Evento .:. btnCapturar_Click");
             }
+        }
+
+        private void btnGrabar_Click(object sender, EventArgs e)
+        {
+            
+            this.VideoW = new VideoWriter(@"C:\Users\DaniloDaniel\Desktop\resources\temp.mp4",
+                                   29,
+                                   new Size(1920,1080),
+                                   true);
+            this.isRecording = true;
+        }
+
+        private void btnDetenerGrabacion_Click(object sender, EventArgs e)
+        {
+            this.isRecording = false;
         }
     }
 }

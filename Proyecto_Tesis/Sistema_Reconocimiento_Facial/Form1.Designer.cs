@@ -96,6 +96,8 @@
             this.btnSeleccionarMuestrasTest = new System.Windows.Forms.Button();
             this.tbRutaMuetrasTest = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
+            this.btnGrabar = new System.Windows.Forms.Button();
+            this.btnDetenerGrabacion = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -131,6 +133,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.btnDetenerGrabacion);
+            this.tabPage1.Controls.Add(this.btnGrabar);
             this.tabPage1.Controls.Add(this.btnCapturar);
             this.tabPage1.Controls.Add(this.groupBox6);
             this.tabPage1.Controls.Add(this.btnDetenerReconocimiento);
@@ -148,11 +152,11 @@
             // 
             // btnCapturar
             // 
-            this.btnCapturar.Location = new System.Drawing.Point(261, 441);
+            this.btnCapturar.Location = new System.Drawing.Point(407, 396);
             this.btnCapturar.Name = "btnCapturar";
             this.btnCapturar.Size = new System.Drawing.Size(94, 39);
             this.btnCapturar.TabIndex = 9;
-            this.btnCapturar.Text = "&Capturar";
+            this.btnCapturar.Text = "&Capturar Foto";
             this.btnCapturar.UseVisualStyleBackColor = true;
             this.btnCapturar.Click += new System.EventHandler(this.btnCapturar_Click);
             // 
@@ -777,6 +781,26 @@
             this.label9.TabIndex = 3;
             this.label9.Text = "Ruta muestras test:";
             // 
+            // btnGrabar
+            // 
+            this.btnGrabar.Location = new System.Drawing.Point(160, 396);
+            this.btnGrabar.Name = "btnGrabar";
+            this.btnGrabar.Size = new System.Drawing.Size(94, 39);
+            this.btnGrabar.TabIndex = 10;
+            this.btnGrabar.Text = "&Grabar";
+            this.btnGrabar.UseVisualStyleBackColor = true;
+            this.btnGrabar.Click += new System.EventHandler(this.btnGrabar_Click);
+            // 
+            // btnDetenerGrabacion
+            // 
+            this.btnDetenerGrabacion.Location = new System.Drawing.Point(281, 396);
+            this.btnDetenerGrabacion.Name = "btnDetenerGrabacion";
+            this.btnDetenerGrabacion.Size = new System.Drawing.Size(94, 39);
+            this.btnDetenerGrabacion.TabIndex = 11;
+            this.btnDetenerGrabacion.Text = "&Detener Grabación";
+            this.btnDetenerGrabacion.UseVisualStyleBackColor = true;
+            this.btnDetenerGrabacion.Click += new System.EventHandler(this.btnDetenerGrabacion_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -877,6 +901,8 @@
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.DataGridView dgvSujetos;
         private System.Windows.Forms.Button btnCapturar;
+        private System.Windows.Forms.Button btnDetenerGrabacion;
+        private System.Windows.Forms.Button btnGrabar;
     }
 }
 
