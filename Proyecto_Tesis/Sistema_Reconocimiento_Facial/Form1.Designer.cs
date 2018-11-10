@@ -31,6 +31,8 @@
             this.pbImagenOriginal = new System.Windows.Forms.PictureBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.btnDetenerGrabacion = new System.Windows.Forms.Button();
+            this.btnGrabar = new System.Windows.Forms.Button();
             this.btnCapturar = new System.Windows.Forms.Button();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.dgvSujetos = new System.Windows.Forms.DataGridView();
@@ -96,8 +98,6 @@
             this.btnSeleccionarMuestrasTest = new System.Windows.Forms.Button();
             this.tbRutaMuetrasTest = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
-            this.btnGrabar = new System.Windows.Forms.Button();
-            this.btnDetenerGrabacion = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -116,7 +116,7 @@
             // 
             this.pbImagenOriginal.Location = new System.Drawing.Point(16, 16);
             this.pbImagenOriginal.Name = "pbImagenOriginal";
-            this.pbImagenOriginal.Size = new System.Drawing.Size(640, 360);
+            this.pbImagenOriginal.Size = new System.Drawing.Size(1280, 720);
             this.pbImagenOriginal.TabIndex = 1;
             this.pbImagenOriginal.TabStop = false;
             // 
@@ -128,7 +128,7 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1034, 683);
+            this.tabControl1.Size = new System.Drawing.Size(1034, 575);
             this.tabControl1.TabIndex = 3;
             // 
             // tabPage1
@@ -145,10 +145,30 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1026, 657);
+            this.tabPage1.Size = new System.Drawing.Size(1026, 549);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Vivo";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // btnDetenerGrabacion
+            // 
+            this.btnDetenerGrabacion.Location = new System.Drawing.Point(281, 396);
+            this.btnDetenerGrabacion.Name = "btnDetenerGrabacion";
+            this.btnDetenerGrabacion.Size = new System.Drawing.Size(94, 39);
+            this.btnDetenerGrabacion.TabIndex = 11;
+            this.btnDetenerGrabacion.Text = "&Detener Grabación";
+            this.btnDetenerGrabacion.UseVisualStyleBackColor = true;
+            this.btnDetenerGrabacion.Click += new System.EventHandler(this.btnDetenerGrabacion_Click);
+            // 
+            // btnGrabar
+            // 
+            this.btnGrabar.Location = new System.Drawing.Point(160, 396);
+            this.btnGrabar.Name = "btnGrabar";
+            this.btnGrabar.Size = new System.Drawing.Size(94, 39);
+            this.btnGrabar.TabIndex = 10;
+            this.btnGrabar.Text = "&Grabar";
+            this.btnGrabar.UseVisualStyleBackColor = true;
+            this.btnGrabar.Click += new System.EventHandler(this.btnGrabar_Click);
             // 
             // btnCapturar
             // 
@@ -309,7 +329,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1026, 657);
+            this.tabPage2.Size = new System.Drawing.Size(1026, 549);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Entrenamiento";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -590,7 +610,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1026, 657);
+            this.tabPage3.Size = new System.Drawing.Size(1026, 549);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Prueba Estática";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -781,31 +801,11 @@
             this.label9.TabIndex = 3;
             this.label9.Text = "Ruta muestras test:";
             // 
-            // btnGrabar
-            // 
-            this.btnGrabar.Location = new System.Drawing.Point(160, 396);
-            this.btnGrabar.Name = "btnGrabar";
-            this.btnGrabar.Size = new System.Drawing.Size(94, 39);
-            this.btnGrabar.TabIndex = 10;
-            this.btnGrabar.Text = "&Grabar";
-            this.btnGrabar.UseVisualStyleBackColor = true;
-            this.btnGrabar.Click += new System.EventHandler(this.btnGrabar_Click);
-            // 
-            // btnDetenerGrabacion
-            // 
-            this.btnDetenerGrabacion.Location = new System.Drawing.Point(281, 396);
-            this.btnDetenerGrabacion.Name = "btnDetenerGrabacion";
-            this.btnDetenerGrabacion.Size = new System.Drawing.Size(94, 39);
-            this.btnDetenerGrabacion.TabIndex = 11;
-            this.btnDetenerGrabacion.Text = "&Detener Grabación";
-            this.btnDetenerGrabacion.UseVisualStyleBackColor = true;
-            this.btnDetenerGrabacion.Click += new System.EventHandler(this.btnDetenerGrabacion_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1058, 707);
+            this.ClientSize = new System.Drawing.Size(1058, 659);
             this.Controls.Add(this.tabControl1);
             this.Name = "Form1";
             this.Text = "HKM | Sistema de Reconocimiento Facial ";
