@@ -343,6 +343,7 @@ namespace Sistema_Reconocimiento_Facial
             {
                 //this.cleanSamples();
                 this.crearTabla();
+                CheckForIllegalCrossThreadCalls = false;
             }
             catch (Exception ex)
             {
@@ -359,6 +360,12 @@ namespace Sistema_Reconocimiento_Facial
             
             //Relacionar nuestro DataGRidView con nuestro DataTable
             this.dgvSujetos.DataSource = this.dtSujetos;
+
+            //Inicializar grid de fotos de sujetos encontrados
+            DataGridViewImageColumn imgCol = new DataGridViewImageColumn();
+            imgCol.HeaderText = "Foto";
+            imgCol.Name = "Foto";
+            this.dgvFotosSujetosEncontradas.Columns.Add(imgCol);
         }
 
         private void ProcessFrame(object sender, EventArgs e)
@@ -817,7 +824,7 @@ namespace Sistema_Reconocimiento_Facial
                 CvInvoke.CvtColor(frame, frameGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
                 Image<Bgr, Byte> frameBgr = new Image<Bgr, Byte>(frame.Bitmap);
                 //Encuentra una lista de rostros hallados en el frame.
-                faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false));
+                faceDetected = detectFaces(frameGray.ToImage<Gray, Byte>().Resize(this.WIDTH_WINDOW, this.HEIGHT_WINDOW, Inter.Linear, false));
                 //Realiza una preprocesado a todos los rostros hallados.
                 dataTest = preProcessingDataTest(faceDetected); 
 
@@ -858,10 +865,9 @@ namespace Sistema_Reconocimiento_Facial
                         {
                             Person sujeto = listPersons[resultado];
                             sujeto.ConteoFramePositivos += 1;
-                            Face face = faceDetected.ElementAt(numPerson);
+                            sujeto.Foto = faceDetected.ElementAt(numPerson);
                             //Pintar y etiquetar
                             string nombre = listSearch[resultado];
-                            //CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
                             this.sujetoIdentificado = sujeto.Nombre;
                             Console.WriteLine(this.sujetoIdentificado);
                         }
@@ -2395,19 +2401,32 @@ namespace Sistema_Reconocimiento_Facial
         }
         public void evaluacionConteoFramesPositivos()
         {
-            foreach (var person in listPersons)
+            try
             {
-                if ((int)person.Value.ConteoFramePositivos > 2)
+                foreach (var person in listPersons)
                 {
-                    //Se añade el sujeto encontrado
-                    DataRow row = this.dtSujetos.NewRow();
-                    this.nroSujetosHallados += 1;
-                    row["id"] = this.nroSujetosHallados;
-                    row["nombre"] = person.Value.Nombre;
-                    row["fecha_registro"] = Convert.ToString(DateTime.Now);
-                    this.dtSujetos.Rows.Add(row);
+                    if ((int)person.Value.ConteoFramePositivos > 2)
+                    {
+                        //Se añade el sujeto encontrado a grilla con nombre
+                        DataRow row = this.dtSujetos.NewRow();
+                        this.nroSujetosHallados += 1;
+                        row["id"] = this.nroSujetosHallados;
+                        row["nombre"] = person.Value.Nombre;
+                        row["fecha_registro"] = Convert.ToString(DateTime.Now);
+                        this.dtSujetos.Rows.Add(row);
+                        //Se añade el sujeto encontrado a grilla con foto
+                        Image<Gray, byte> img = person.Value.Foto.FaceOnly;
+                        Image<Gray, Byte> gray = img.Clone();
+                        Object[] row_foto = new Object[] { gray.Bitmap };
+                        this.dgvFotosSujetosEncontradas.Rows.Add(row_foto);
+                    }
                 }
             }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Método .:. evaluacionConteoFramesPositivos");
+            }
+            
         }
         public int evaluationPredictionFactor4()
         {

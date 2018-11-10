@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Emgu.CV;
+using Emgu.CV.Structure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +14,7 @@ namespace Sistema_Reconocimiento_Facial
         private string _nombre;
         private int _nroVotos;
         private int _conteoFramePositivos;
-
+        private Face _foto;
         public Person()
         { }
 
@@ -38,6 +40,12 @@ namespace Sistema_Reconocimiento_Facial
         {
             get { return _conteoFramePositivos; }
             set { _conteoFramePositivos = value; }
+        }
+
+        public Face Foto
+        {
+            get {return _foto;}
+            set {_foto = value;}
         }
     }
 }

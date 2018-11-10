@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.pbImagenOriginal = new System.Windows.Forms.PictureBox();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.vivo = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.btnDetenerGrabacion = new System.Windows.Forms.Button();
             this.btnGrabar = new System.Windows.Forms.Button();
@@ -98,8 +98,9 @@
             this.btnSeleccionarMuestrasTest = new System.Windows.Forms.Button();
             this.tbRutaMuetrasTest = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
+            this.dgvFotosSujetosEncontradas = new System.Windows.Forms.DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
-            this.tabControl1.SuspendLayout();
+            this.vivo.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSujetos)).BeginInit();
@@ -110,26 +111,27 @@
             this.tabPage3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvFotosSujetosEncontradas)).BeginInit();
             this.SuspendLayout();
             // 
             // pbImagenOriginal
             // 
-            this.pbImagenOriginal.Location = new System.Drawing.Point(16, 16);
+            this.pbImagenOriginal.Location = new System.Drawing.Point(6, 16);
             this.pbImagenOriginal.Name = "pbImagenOriginal";
-            this.pbImagenOriginal.Size = new System.Drawing.Size(1280, 720);
+            this.pbImagenOriginal.Size = new System.Drawing.Size(640, 360);
             this.pbImagenOriginal.TabIndex = 1;
             this.pbImagenOriginal.TabStop = false;
             // 
-            // tabControl1
+            // vivo
             // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage3);
-            this.tabControl1.Location = new System.Drawing.Point(12, 12);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1034, 575);
-            this.tabControl1.TabIndex = 3;
+            this.vivo.Controls.Add(this.tabPage1);
+            this.vivo.Controls.Add(this.tabPage2);
+            this.vivo.Controls.Add(this.tabPage3);
+            this.vivo.Location = new System.Drawing.Point(3, 12);
+            this.vivo.Name = "vivo";
+            this.vivo.SelectedIndex = 0;
+            this.vivo.Size = new System.Drawing.Size(1212, 575);
+            this.vivo.TabIndex = 3;
             // 
             // tabPage1
             // 
@@ -145,14 +147,14 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1026, 549);
+            this.tabPage1.Size = new System.Drawing.Size(1204, 549);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Vivo";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // btnDetenerGrabacion
             // 
-            this.btnDetenerGrabacion.Location = new System.Drawing.Point(281, 396);
+            this.btnDetenerGrabacion.Location = new System.Drawing.Point(116, 396);
             this.btnDetenerGrabacion.Name = "btnDetenerGrabacion";
             this.btnDetenerGrabacion.Size = new System.Drawing.Size(94, 39);
             this.btnDetenerGrabacion.TabIndex = 11;
@@ -162,7 +164,7 @@
             // 
             // btnGrabar
             // 
-            this.btnGrabar.Location = new System.Drawing.Point(160, 396);
+            this.btnGrabar.Location = new System.Drawing.Point(16, 396);
             this.btnGrabar.Name = "btnGrabar";
             this.btnGrabar.Size = new System.Drawing.Size(94, 39);
             this.btnGrabar.TabIndex = 10;
@@ -172,7 +174,7 @@
             // 
             // btnCapturar
             // 
-            this.btnCapturar.Location = new System.Drawing.Point(407, 396);
+            this.btnCapturar.Location = new System.Drawing.Point(552, 396);
             this.btnCapturar.Name = "btnCapturar";
             this.btnCapturar.Size = new System.Drawing.Size(94, 39);
             this.btnCapturar.TabIndex = 9;
@@ -183,9 +185,10 @@
             // groupBox6
             // 
             this.groupBox6.Controls.Add(this.dgvSujetos);
-            this.groupBox6.Location = new System.Drawing.Point(662, 268);
+            this.groupBox6.Controls.Add(this.dgvFotosSujetosEncontradas);
+            this.groupBox6.Location = new System.Drawing.Point(656, 196);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(348, 263);
+            this.groupBox6.Size = new System.Drawing.Size(514, 320);
             this.groupBox6.TabIndex = 7;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Personas Encontradas";
@@ -194,16 +197,18 @@
             // 
             this.dgvSujetos.AllowUserToAddRows = false;
             this.dgvSujetos.AllowUserToDeleteRows = false;
+            this.dgvSujetos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvSujetos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvSujetos.Location = new System.Drawing.Point(6, 31);
+            this.dgvSujetos.Location = new System.Drawing.Point(9, 31);
             this.dgvSujetos.Name = "dgvSujetos";
             this.dgvSujetos.ReadOnly = true;
-            this.dgvSujetos.Size = new System.Drawing.Size(336, 226);
+            this.dgvSujetos.RowHeadersVisible = false;
+            this.dgvSujetos.Size = new System.Drawing.Size(310, 283);
             this.dgvSujetos.TabIndex = 6;
             // 
             // btnDetenerReconocimiento
             // 
-            this.btnDetenerReconocimiento.Location = new System.Drawing.Point(916, 205);
+            this.btnDetenerReconocimiento.Location = new System.Drawing.Point(1076, 124);
             this.btnDetenerReconocimiento.Name = "btnDetenerReconocimiento";
             this.btnDetenerReconocimiento.Size = new System.Drawing.Size(94, 40);
             this.btnDetenerReconocimiento.TabIndex = 5;
@@ -213,7 +218,7 @@
             // 
             // btnIniciarReconocimiento
             // 
-            this.btnIniciarReconocimiento.Location = new System.Drawing.Point(798, 206);
+            this.btnIniciarReconocimiento.Location = new System.Drawing.Point(976, 125);
             this.btnIniciarReconocimiento.Name = "btnIniciarReconocimiento";
             this.btnIniciarReconocimiento.Size = new System.Drawing.Size(94, 40);
             this.btnIniciarReconocimiento.TabIndex = 4;
@@ -223,7 +228,7 @@
             // 
             // btnConectarCamara
             // 
-            this.btnConectarCamara.Location = new System.Drawing.Point(671, 206);
+            this.btnConectarCamara.Location = new System.Drawing.Point(656, 125);
             this.btnConectarCamara.Name = "btnConectarCamara";
             this.btnConectarCamara.Size = new System.Drawing.Size(94, 39);
             this.btnConectarCamara.TabIndex = 3;
@@ -241,16 +246,16 @@
             this.groupBox5.Controls.Add(this.label23);
             this.groupBox5.Controls.Add(this.label20);
             this.groupBox5.Controls.Add(this.label19);
-            this.groupBox5.Location = new System.Drawing.Point(662, 16);
+            this.groupBox5.Location = new System.Drawing.Point(656, 16);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(348, 159);
+            this.groupBox5.Size = new System.Drawing.Size(514, 103);
             this.groupBox5.TabIndex = 2;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Parámetros Cámara";
             // 
             // tbPort
             // 
-            this.tbPort.Location = new System.Drawing.Point(83, 122);
+            this.tbPort.Location = new System.Drawing.Point(355, 69);
             this.tbPort.Name = "tbPort";
             this.tbPort.Size = new System.Drawing.Size(100, 20);
             this.tbPort.TabIndex = 7;
@@ -258,7 +263,7 @@
             // 
             // tbDirIP
             // 
-            this.tbDirIP.Location = new System.Drawing.Point(83, 93);
+            this.tbDirIP.Location = new System.Drawing.Point(83, 72);
             this.tbDirIP.Name = "tbDirIP";
             this.tbDirIP.Size = new System.Drawing.Size(100, 20);
             this.tbDirIP.TabIndex = 6;
@@ -266,7 +271,7 @@
             // 
             // tbPass
             // 
-            this.tbPass.Location = new System.Drawing.Point(83, 60);
+            this.tbPass.Location = new System.Drawing.Point(355, 28);
             this.tbPass.Name = "tbPass";
             this.tbPass.Size = new System.Drawing.Size(100, 20);
             this.tbPass.TabIndex = 5;
@@ -283,7 +288,7 @@
             // label24
             // 
             this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(6, 125);
+            this.label24.Location = new System.Drawing.Point(278, 72);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(38, 13);
             this.label24.TabIndex = 3;
@@ -292,7 +297,7 @@
             // label23
             // 
             this.label23.AutoSize = true;
-            this.label23.Location = new System.Drawing.Point(6, 96);
+            this.label23.Location = new System.Drawing.Point(6, 75);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(68, 13);
             this.label23.TabIndex = 2;
@@ -301,7 +306,7 @@
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(6, 63);
+            this.label20.Location = new System.Drawing.Point(278, 31);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(64, 13);
             this.label20.TabIndex = 1;
@@ -801,16 +806,30 @@
             this.label9.TabIndex = 3;
             this.label9.Text = "Ruta muestras test:";
             // 
+            // dgvFotosSujetosEncontradas
+            // 
+            this.dgvFotosSujetosEncontradas.AllowUserToAddRows = false;
+            this.dgvFotosSujetosEncontradas.AllowUserToDeleteRows = false;
+            this.dgvFotosSujetosEncontradas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvFotosSujetosEncontradas.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvFotosSujetosEncontradas.Location = new System.Drawing.Point(323, 31);
+            this.dgvFotosSujetosEncontradas.Name = "dgvFotosSujetosEncontradas";
+            this.dgvFotosSujetosEncontradas.ReadOnly = true;
+            this.dgvFotosSujetosEncontradas.RowHeadersVisible = false;
+            this.dgvFotosSujetosEncontradas.RowTemplate.Height = 60;
+            this.dgvFotosSujetosEncontradas.Size = new System.Drawing.Size(100, 283);
+            this.dgvFotosSujetosEncontradas.TabIndex = 12;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1058, 659);
-            this.Controls.Add(this.tabControl1);
+            this.ClientSize = new System.Drawing.Size(1221, 595);
+            this.Controls.Add(this.vivo);
             this.Name = "Form1";
             this.Text = "HKM | Sistema de Reconocimiento Facial ";
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).EndInit();
-            this.tabControl1.ResumeLayout(false);
+            this.vivo.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.groupBox6.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvSujetos)).EndInit();
@@ -828,13 +847,14 @@
             this.groupBox4.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvFotosSujetosEncontradas)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
         private System.Windows.Forms.PictureBox pbImagenOriginal;
-        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabControl vivo;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.Label label1;
@@ -903,6 +923,7 @@
         private System.Windows.Forms.Button btnCapturar;
         private System.Windows.Forms.Button btnDetenerGrabacion;
         private System.Windows.Forms.Button btnGrabar;
+        private System.Windows.Forms.DataGridView dgvFotosSujetosEncontradas;
     }
 }
 
