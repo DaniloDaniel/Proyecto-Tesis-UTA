@@ -28,6 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.pbImagenOriginal = new System.Windows.Forms.PictureBox();
             this.vivo = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -35,7 +38,7 @@
             this.btnGrabar = new System.Windows.Forms.Button();
             this.btnCapturar = new System.Windows.Forms.Button();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
-            this.dgvSujetos = new System.Windows.Forms.DataGridView();
+            this.dgvFotosSujetosEncontradas = new System.Windows.Forms.DataGridView();
             this.btnDetenerReconocimiento = new System.Windows.Forms.Button();
             this.btnIniciarReconocimiento = new System.Windows.Forms.Button();
             this.btnConectarCamara = new System.Windows.Forms.Button();
@@ -98,12 +101,11 @@
             this.btnSeleccionarMuestrasTest = new System.Windows.Forms.Button();
             this.tbRutaMuetrasTest = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
-            this.dgvFotosSujetosEncontradas = new System.Windows.Forms.DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
             this.vivo.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox6.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvSujetos)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvFotosSujetosEncontradas)).BeginInit();
             this.groupBox5.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -111,7 +113,6 @@
             this.tabPage3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvFotosSujetosEncontradas)).BeginInit();
             this.SuspendLayout();
             // 
             // pbImagenOriginal
@@ -127,10 +128,10 @@
             this.vivo.Controls.Add(this.tabPage1);
             this.vivo.Controls.Add(this.tabPage2);
             this.vivo.Controls.Add(this.tabPage3);
-            this.vivo.Location = new System.Drawing.Point(3, 12);
+            this.vivo.Location = new System.Drawing.Point(-3, 12);
             this.vivo.Name = "vivo";
             this.vivo.SelectedIndex = 0;
-            this.vivo.Size = new System.Drawing.Size(1212, 575);
+            this.vivo.Size = new System.Drawing.Size(1212, 558);
             this.vivo.TabIndex = 3;
             // 
             // tabPage1
@@ -147,7 +148,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1204, 549);
+            this.tabPage1.Size = new System.Drawing.Size(1204, 532);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Vivo";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -184,27 +185,52 @@
             // 
             // groupBox6
             // 
-            this.groupBox6.Controls.Add(this.dgvSujetos);
             this.groupBox6.Controls.Add(this.dgvFotosSujetosEncontradas);
             this.groupBox6.Location = new System.Drawing.Point(656, 196);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(514, 320);
+            this.groupBox6.Size = new System.Drawing.Size(514, 330);
             this.groupBox6.TabIndex = 7;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Personas Encontradas";
             // 
-            // dgvSujetos
+            // dgvFotosSujetosEncontradas
             // 
-            this.dgvSujetos.AllowUserToAddRows = false;
-            this.dgvSujetos.AllowUserToDeleteRows = false;
-            this.dgvSujetos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvSujetos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvSujetos.Location = new System.Drawing.Point(9, 31);
-            this.dgvSujetos.Name = "dgvSujetos";
-            this.dgvSujetos.ReadOnly = true;
-            this.dgvSujetos.RowHeadersVisible = false;
-            this.dgvSujetos.Size = new System.Drawing.Size(310, 283);
-            this.dgvSujetos.TabIndex = 6;
+            this.dgvFotosSujetosEncontradas.AllowUserToAddRows = false;
+            this.dgvFotosSujetosEncontradas.AllowUserToDeleteRows = false;
+            this.dgvFotosSujetosEncontradas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvFotosSujetosEncontradas.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvFotosSujetosEncontradas.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvFotosSujetosEncontradas.DefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvFotosSujetosEncontradas.Location = new System.Drawing.Point(9, 31);
+            this.dgvFotosSujetosEncontradas.Name = "dgvFotosSujetosEncontradas";
+            this.dgvFotosSujetosEncontradas.ReadOnly = true;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvFotosSujetosEncontradas.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            this.dgvFotosSujetosEncontradas.RowHeadersVisible = false;
+            this.dgvFotosSujetosEncontradas.RowTemplate.Height = 60;
+            this.dgvFotosSujetosEncontradas.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvFotosSujetosEncontradas.Size = new System.Drawing.Size(499, 289);
+            this.dgvFotosSujetosEncontradas.TabIndex = 12;
             // 
             // btnDetenerReconocimiento
             // 
@@ -334,7 +360,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1026, 549);
+            this.tabPage2.Size = new System.Drawing.Size(1204, 549);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Entrenamiento";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -615,7 +641,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1026, 549);
+            this.tabPage3.Size = new System.Drawing.Size(1204, 549);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Prueba Estática";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -806,25 +832,11 @@
             this.label9.TabIndex = 3;
             this.label9.Text = "Ruta muestras test:";
             // 
-            // dgvFotosSujetosEncontradas
-            // 
-            this.dgvFotosSujetosEncontradas.AllowUserToAddRows = false;
-            this.dgvFotosSujetosEncontradas.AllowUserToDeleteRows = false;
-            this.dgvFotosSujetosEncontradas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvFotosSujetosEncontradas.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvFotosSujetosEncontradas.Location = new System.Drawing.Point(323, 31);
-            this.dgvFotosSujetosEncontradas.Name = "dgvFotosSujetosEncontradas";
-            this.dgvFotosSujetosEncontradas.ReadOnly = true;
-            this.dgvFotosSujetosEncontradas.RowHeadersVisible = false;
-            this.dgvFotosSujetosEncontradas.RowTemplate.Height = 60;
-            this.dgvFotosSujetosEncontradas.Size = new System.Drawing.Size(100, 283);
-            this.dgvFotosSujetosEncontradas.TabIndex = 12;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1221, 595);
+            this.ClientSize = new System.Drawing.Size(1221, 579);
             this.Controls.Add(this.vivo);
             this.Name = "Form1";
             this.Text = "HKM | Sistema de Reconocimiento Facial ";
@@ -832,7 +844,7 @@
             this.vivo.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.groupBox6.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvSujetos)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvFotosSujetosEncontradas)).EndInit();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             this.tabPage2.ResumeLayout(false);
@@ -847,7 +859,6 @@
             this.groupBox4.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvFotosSujetosEncontradas)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -919,7 +930,6 @@
         private System.Windows.Forms.Button btnConectarCamara;
         private System.Windows.Forms.Button btnDetenerReconocimiento;
         private System.Windows.Forms.GroupBox groupBox6;
-        private System.Windows.Forms.DataGridView dgvSujetos;
         private System.Windows.Forms.Button btnCapturar;
         private System.Windows.Forms.Button btnDetenerGrabacion;
         private System.Windows.Forms.Button btnGrabar;

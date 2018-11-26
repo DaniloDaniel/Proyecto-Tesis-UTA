@@ -25,8 +25,8 @@ namespace Sistema_Reconocimiento_Facial
     {
         private static string pathCascadeFace = "haarcascade_frontalface_default.xml";
         private static string pathCascadeEye = "haarcascade_eye.xml";
-        private int WIDTH_FRAME_CAMERA = 1280;
-        private int HEIGHT_FRAME_CAMERA = 720;
+        private int WIDTH_FRAME_CAMERA = 640;
+        private int HEIGHT_FRAME_CAMERA = 360;
         private int WIDTH_WINDOW = 640;
         private int HEIGHT_WINDOW = 360;
         private double porcentajeAceptacionMax;
@@ -353,19 +353,35 @@ namespace Sistema_Reconocimiento_Facial
 
         private void crearTabla()
         {
-            this.dtSujetos = new DataTable("Sujeto-Hallados");
-            this.dtSujetos.Columns.Add("id", System.Type.GetType("System.Int32"));
-            this.dtSujetos.Columns.Add("nombre", System.Type.GetType("System.String"));
-            this.dtSujetos.Columns.Add("fecha_registro", System.Type.GetType("System.String"));
-            
+            //this.dtSujetos = new DataTable("Sujeto-Hallados");
+            //this.dtSujetos.Columns.Add("id", System.Type.GetType("System.Int32"));
+            //this.dtSujetos.Columns.Add("foto", System.Type.GetType("System.Image"));
+            //this.dtSujetos.Columns.Add("nombre", System.Type.GetType("System.String"));
+            //this.dtSujetos.Columns.Add("fecha_registro", System.Type.GetType("System.String"));
+
             //Relacionar nuestro DataGRidView con nuestro DataTable
-            this.dgvSujetos.DataSource = this.dtSujetos;
+            //this.dgvSujetos.DataSource = this.dtSujetos;
 
             //Inicializar grid de fotos de sujetos encontrados
+            DataGridViewTextBoxColumn idCol = new DataGridViewTextBoxColumn();
+            idCol.HeaderText = "ID";
+            idCol.Name = "ID";
+            this.dgvFotosSujetosEncontradas.Columns.Add(idCol);
+
             DataGridViewImageColumn imgCol = new DataGridViewImageColumn();
             imgCol.HeaderText = "Foto";
             imgCol.Name = "Foto";
             this.dgvFotosSujetosEncontradas.Columns.Add(imgCol);
+
+            DataGridViewTextBoxColumn nombreCol = new DataGridViewTextBoxColumn();
+            nombreCol.HeaderText = "Nombre";
+            nombreCol.Name = "Nombre";
+            this.dgvFotosSujetosEncontradas.Columns.Add(nombreCol);
+
+            DataGridViewTextBoxColumn fechaCol = new DataGridViewTextBoxColumn();
+            fechaCol.HeaderText = "Fecha";
+            fechaCol.Name = "Fecha";
+            this.dgvFotosSujetosEncontradas.Columns.Add(fechaCol);
         }
 
         private void ProcessFrame(object sender, EventArgs e)
@@ -378,7 +394,7 @@ namespace Sistema_Reconocimiento_Facial
                     if (this.isRecording) this.VideoW.Write(_frame);
                     // Revisar el acoumulador de puntuación de los sujetos cada 5 seg.
                     // y reinicar lo acumuladores personales
-                    if (this.conteoFrames == 30 && this.isWorking==true)
+                    if (this.conteoFrames == 10 && this.isWorking==true)
                     {
                         //Se revisa si el lapso definido (5 seg.) fue identificado algún sujeto
                         //Posterior, se reinician los acumuladores
@@ -389,7 +405,7 @@ namespace Sistema_Reconocimiento_Facial
                     this.conteoFrames += 1;
                     if (this.isWorking)
                     {
-                        if (this.conteoFrames % 10 == 0)
+                        if (this.conteoFrames % 3 == 0)
                         {
                             List<Face> faceDetected = new List<Face>();
                             faceDetected = detectFaces(_frame.ToImage<Gray, Byte>().Resize(this.WIDTH_FRAME_CAMERA, this.HEIGHT_FRAME_CAMERA, Inter.Linear, false)); //Intenta buscar un rostro en el frame
@@ -485,7 +501,7 @@ namespace Sistema_Reconocimiento_Facial
             CascadeClassifier faceDetector = new CascadeClassifier(pathCascadeFace);
             try
             {
-                frame = frame.Resize(1280, 720, Inter.Linear, false);
+                frame = frame.Resize(640, 360, Inter.Linear, false);
                 frame = alignEyes(frame);
                 //Detección de rostros en la  imagen, debería encontrar un solo rostro por imagen
                 foreach (Rectangle face in faceDetector.DetectMultiScale(frame, 1.1, 10, new Size(20, 20), Size.Empty))
@@ -555,7 +571,7 @@ namespace Sistema_Reconocimiento_Facial
                         CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
                         //Todas las muestras deben ser preprocesadas.
-                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(1280, 720, Inter.Linear, false));
+                        Mat imgMat = preProcessingDataTrain(imgGray.ToImage<Gray, Byte>().Resize(640, 360, Inter.Linear, false));
                         //Etiquetando datos de entrada
                         labelTrain[imgCount, 0] = (int)classID;
                         //Agregando una imagen de tipo Mat a la lista
@@ -2306,7 +2322,7 @@ namespace Sistema_Reconocimiento_Facial
         public void cleanSamples()
         {
             // Especificar ruta de origen para datos de entrenamiento
-            var path = new DirectoryInfo(@"C:\Users\FGG\Desktop\Resources-Personas-1280x720-copia");
+            var path = new DirectoryInfo(@"C:\Users\DaniloDaniel\Desktop\Evaluacion Rostro en imagen");
             string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
 
             /************ Para quitar aquellas muestras con mas de un rostro ************/
@@ -2324,8 +2340,8 @@ namespace Sistema_Reconocimiento_Facial
 
                     IImage img = new Mat(@file.FullName, ImreadModes.Color);
                     CvInvoke.CvtColor(img, imgGray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                    imgGray = alignEyes(imgGray.ToImage<Gray, Byte>().Resize(1280, 720, Inter.Linear, false)).ToUMat();
-                    faceDetected = detectFaces(imgGray.ToImage<Gray, Byte>().Resize(1280, 720, Inter.Linear, false));
+                    imgGray = alignEyes(imgGray.ToImage<Gray, Byte>().Resize(640, 360, Inter.Linear, false)).ToUMat();
+                    faceDetected = detectFaces(imgGray.ToImage<Gray, Byte>().Resize(640, 360, Inter.Linear, false));
                     if (faceDetected.Count == 0 || faceDetected.Count > 1)
                     {
                         myComputer.FileSystem.DeleteFile(file.FullName);
@@ -2408,17 +2424,26 @@ namespace Sistema_Reconocimiento_Facial
                     if ((int)person.Value.ConteoFramePositivos > 2)
                     {
                         //Se añade el sujeto encontrado a grilla con nombre
-                        DataRow row = this.dtSujetos.NewRow();
+                        //DataRow row = this.dtSujetos.NewRow();
                         this.nroSujetosHallados += 1;
-                        row["id"] = this.nroSujetosHallados;
-                        row["nombre"] = person.Value.Nombre;
-                        row["fecha_registro"] = Convert.ToString(DateTime.Now);
-                        this.dtSujetos.Rows.Add(row);
+                        //row["id"] = this.nroSujetosHallados;
+                        //row["nombre"] = person.Value.Nombre;
+                        //row["fecha_registro"] = Convert.ToString(DateTime.Now);
+                        //this.dtSujetos.Rows.Add(row);
                         //Se añade el sujeto encontrado a grilla con foto
                         Image<Gray, byte> img = person.Value.Foto.FaceOnly;
                         Image<Gray, Byte> gray = img.Clone();
-                        Object[] row_foto = new Object[] { gray.Bitmap };
-                        this.dgvFotosSujetosEncontradas.Rows.Add(row_foto);
+                        string id = this.nroSujetosHallados.ToString();
+                        string nombre = person.Value.Nombre;
+                        string fecha = Convert.ToString(DateTime.Now);
+
+                        Object[] row_grid = new Object[] {id, gray.Bitmap, nombre, fecha};
+                        if(this.dgvFotosSujetosEncontradas.Rows.Count == 4)
+                        {
+                            this.dgvFotosSujetosEncontradas.Rows.Clear();
+                        }
+
+                        this.dgvFotosSujetosEncontradas.Rows.Add(row_grid);
                     }
                 }
             }
@@ -2673,8 +2698,8 @@ namespace Sistema_Reconocimiento_Facial
                 string port = this.tbPort.Text;
                 string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/101/";
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
-                this._capture = new VideoCapture(strConnection);
-                //this._capture = new VideoCapture(@"C:\Users\FGG\Desktop\Resources-Personas-1280x720\Danilo_Gonzalez.mp4");
+                //this._capture = new VideoCapture(strConnection);
+                this._capture = new VideoCapture(@"C:\Users\DaniloDaniel\Desktop\Video-Prueba\video.mp4");
                 _capture.ImageGrabbed += ProcessFrame;
                 _capture.Start();
                 _frame = new Mat();
@@ -2690,13 +2715,15 @@ namespace Sistema_Reconocimiento_Facial
             this.isWorking = true;
             this.conteoFrames = 0;
             this.nroSujetosHallados = 0;
-            this.dtSujetos.Clear();
-            this.dgvSujetos.DataSource = this.dtSujetos;
+            this.dgvFotosSujetosEncontradas.Rows.Clear();
+            //this.dtSujetos.Clear();
+            //this.dgvSujetos.DataSource = this.dtSujetos;
         }
 
         private void btnDetenerReconocimiento_Click(object sender, EventArgs e)
         {
             this.isWorking = false;
+            this.dgvFotosSujetosEncontradas.Rows.Clear();
         }
 
         private void btnCapturar_Click(object sender, EventArgs e)
@@ -2721,7 +2748,7 @@ namespace Sistema_Reconocimiento_Facial
         {
             this.VideoW = new VideoWriter(@"C:\Users\FGG\Desktop\Resources-Personas-1280x720\Nicolas_Moya.mp4",
                                    20,
-                                   new Size(1280,720),
+                                   new Size(640,360),
                                    true);
             this.isRecording = true;
         }
