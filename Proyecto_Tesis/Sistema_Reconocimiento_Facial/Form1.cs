@@ -880,12 +880,14 @@ namespace Sistema_Reconocimiento_Facial
                         if (resultado != 0)
                         {
                             Person sujeto = listPersons[resultado];
+                            Face face = faceDetected.ElementAt(numPerson);
+
                             sujeto.ConteoFramePositivos += 1;
                             sujeto.Foto = faceDetected.ElementAt(numPerson);
                             //Pintar y etiquetar
                             string nombre = listSearch[resultado];
                             this.sujetoIdentificado = sujeto.Nombre;
-                            Console.WriteLine(this.sujetoIdentificado);
+                            CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
                         }
                         else
                         {
@@ -2322,7 +2324,7 @@ namespace Sistema_Reconocimiento_Facial
         public void cleanSamples()
         {
             // Especificar ruta de origen para datos de entrenamiento
-            var path = new DirectoryInfo(@"C:\Users\DaniloDaniel\Desktop\Evaluacion Rostro en imagen");
+            var path = new DirectoryInfo(@"C:\Users\DaniloDaniel\Desktop\carpeta_para_limpiar");
             string[] dirsDataTrain = Directory.GetDirectories(@path.ToString());
 
             /************ Para quitar aquellas muestras con mas de un rostro ************/
@@ -2421,7 +2423,7 @@ namespace Sistema_Reconocimiento_Facial
             {
                 foreach (var person in listPersons)
                 {
-                    if ((int)person.Value.ConteoFramePositivos > 2)
+                    if ((int)person.Value.ConteoFramePositivos >= 2)
                     {
                         //Se añade el sujeto encontrado a grilla con nombre
                         //DataRow row = this.dtSujetos.NewRow();
@@ -2442,7 +2444,6 @@ namespace Sistema_Reconocimiento_Facial
                         {
                             this.dgvFotosSujetosEncontradas.Rows.Clear();
                         }
-
                         this.dgvFotosSujetosEncontradas.Rows.Add(row_grid);
                     }
                 }
@@ -2699,7 +2700,7 @@ namespace Sistema_Reconocimiento_Facial
                 string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/101/";
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
                 //this._capture = new VideoCapture(strConnection);
-                this._capture = new VideoCapture(@"C:\Users\DaniloDaniel\Desktop\Video-Prueba\video.mp4");
+                this._capture = new VideoCapture(@"D:\temp1.mp4");
                 _capture.ImageGrabbed += ProcessFrame;
                 _capture.Start();
                 _frame = new Mat();

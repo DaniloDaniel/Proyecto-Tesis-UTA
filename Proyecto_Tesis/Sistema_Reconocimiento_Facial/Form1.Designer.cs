@@ -197,7 +197,7 @@
             // 
             this.dgvFotosSujetosEncontradas.AllowUserToAddRows = false;
             this.dgvFotosSujetosEncontradas.AllowUserToDeleteRows = false;
-            this.dgvFotosSujetosEncontradas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            this.dgvFotosSujetosEncontradas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
             dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -360,7 +360,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1204, 549);
+            this.tabPage2.Size = new System.Drawing.Size(1204, 532);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Entrenamiento";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -641,7 +641,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1204, 549);
+            this.tabPage3.Size = new System.Drawing.Size(1204, 532);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Prueba Estática";
             this.tabPage3.UseVisualStyleBackColor = true;
