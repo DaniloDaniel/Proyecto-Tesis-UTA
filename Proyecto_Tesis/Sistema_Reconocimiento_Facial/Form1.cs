@@ -17,6 +17,8 @@ using Emgu.CV.Structure;
 using Emgu.CV.UI;
 using Emgu.CV.Util;
 using Emgu.CV.ML;
+//Base de datos MySql
+using MySql.Data.MySqlClient;
 
 
 namespace Sistema_Reconocimiento_Facial
@@ -330,19 +332,14 @@ namespace Sistema_Reconocimiento_Facial
         private int MAX_FRAME = 5;
         private Boolean isWorking = false;
         private Dictionary<string,string> sujetosEvaluados;
+        public string MySqlConnectionString = "datasource=127.0.0.1;port=3306;user=root;password=;database=dbsistemareconocimientotesis";
 
         public Form1()
         {
             InitializeComponent();
             try
             {
-                //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
-                //_capture = new VideoCapture();
-                //_capture.ImageGrabbed += ProcessFrame;
-                //_capture.Start();
-                //_frame = new Mat();
-
-                //IImage img = new Mat(@"E:\Repositorio-Proyecto-Tesis-UTA\Proyecto-Tesis-UTA\Proyecto_Tesis\Sistema_Reconocimiento_Facial\bin\x64\Debug\resources\data-test\TresMuestraPorPersona\Abdullah_0006.jpg", ImreadModes.Color);
+                
             }
             catch (Exception ex)
             {
@@ -491,6 +488,22 @@ namespace Sistema_Reconocimiento_Facial
                     sujeto.Nombre = nameFolder;
                     sujeto.NroVotos = 0;
                     listPersons.Add(classID,sujeto);
+
+                    //Probando base de datos
+                    MySqlConnection connection = new MySqlConnection(this.MySqlConnectionString);
+                    string query = "INSERT INTO persona (etiqueta, nombre_completo) VALUES ('"+classID+"', '"+nameFolder+"');";
+                    MySqlCommand cmd = new MySqlCommand(query, connection);
+                    cmd.CommandTimeout = 60;
+                    try
+                    {
+                        connection.Open();
+                        MySqlDataReader reader = cmd.ExecuteReader();
+                    }
+                    catch(Exception ex)
+                    {
+                        MessageBox.Show("Query error:"+ex.Message);
+                    }
+
                     // Iterar por carpeta, buscando imágenes
                     for (int i = 0; i < files.Length; i++)
                     {
@@ -515,6 +528,7 @@ namespace Sistema_Reconocimiento_Facial
                 MessageBox.Show("Eror: " + ex.Message, "Módulo .:. loadDatatraining: ");
             }
             Console.WriteLine("Número total de imágenes cargadas: {0}", imgCount);
+            
 
         }
         public List<Mat> preProcessingDataTest(List<Face> facesDetected)
@@ -705,7 +719,8 @@ namespace Sistema_Reconocimiento_Facial
                 {
                     List<float> descriptors = new List<float>();
                     Image<Gray, Byte> imgByte = (dataTrain.ElementAt(y)).ToImage<Gray, Byte>();
-                    descriptor = HOG.Compute(imgByte, new Size(16, 16), new Size(0, 0), null);
+                    //descriptor = HOG.Compute(imgByte, new Size(16, 16), new Size(0, 0), null);
+                    descriptor = HOG.Compute(imgByte, Size.Empty, Size.Empty, null);
                     descriptors = descriptor.OfType<float>().ToList();
                     dataTrainHOG.Add(descriptors);
                 }
@@ -747,13 +762,13 @@ namespace Sistema_Reconocimiento_Facial
             SVM model = new SVM();
             model.C = this.C; //100
             model.Type = SVM.SvmType.CSvc;
-            model.Coef0 = this.coef0;
-            model.Degree = this.degree;
-            model.Nu = this.nu;
-            model.P = this.P;
-            model.Gamma = this.gamma;//0.005
+            //model.Coef0 = this.coef0;
+            //model.Degree = this.degree;
+            //model.Nu = this.nu;
+            //model.P = this.P;
+            //model.Gamma = this.gamma;//0.005
             model.SetKernel(SVM.SvmKernelType.Linear);
-            model.TermCriteria = new MCvTermCriteria(1000, 1e-6);
+            //model.TermCriteria = new MCvTermCriteria(1000, 1e-6);
             model.Train(dataTrainMat, Emgu.CV.ML.MlEnum.DataLayoutType.RowSample, labelTrain);
             //model.Save("model_svm.txt");
 
@@ -811,7 +826,7 @@ namespace Sistema_Reconocimiento_Facial
                         Person sujeto = listPersons[resultado];
                         Face face = faceDetected.ElementAt(numPerson);
                         //Pintar y etiquetar
-                        string nombre = listSearch[resultado];
+                        //string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
                         Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
                         this.sujetoIdentificado = sujeto.Nombre;
@@ -850,12 +865,69 @@ namespace Sistema_Reconocimiento_Facial
             this.convertFragmentVectorToMatrixFactor4(ref dataRoi2Mat, dataRoi2HOG);
             this.convertFragmentVectorToMatrixFactor4(ref dataRoi3Mat, dataRoi3HOG);
             this.convertFragmentVectorToMatrixFactor4(ref dataRoi4Mat, dataRoi4HOG);
-   
+
             //model = training(dataTrainMat, labelTrain);
             modelRoi1 = this.trainingFragmentFactor4(dataRoi1Mat, labelTrain);
             modelRoi2 = this.trainingFragmentFactor4(dataRoi2Mat, labelTrain);
             modelRoi3 = this.trainingFragmentFactor4(dataRoi3Mat, labelTrain);
             modelRoi4 = this.trainingFragmentFactor4(dataRoi4Mat, labelTrain);
+
+            modelRoi1.Save("Models/model_f4_roi1.yml");
+            modelRoi2.Save("Models/model_f4_roi2.yml");
+            modelRoi3.Save("Models/model_f4_roi3.yml");
+            modelRoi4.Save("Models/model_f4_roi4.yml");
+        }
+        public void loadDataBaseFactor4()
+        {
+            //Cargando modelos
+
+            //Cargar roi1
+            this.modelRoi1 = new SVM();
+            FileStorage file1 = new FileStorage("Models/model_f4_roi1.yml", FileStorage.Mode.Read);
+            this.modelRoi1.Read(file1.GetNode("opencv_ml_svm"));
+
+            //Cargar roi2
+            this.modelRoi2 = new SVM();
+            FileStorage file2 = new FileStorage("Models/model_f4_roi2.yml", FileStorage.Mode.Read);
+            this.modelRoi2.Read(file2.GetNode("opencv_ml_svm"));
+
+            //Cargar roi3
+            this.modelRoi3 = new SVM();
+            FileStorage file3 = new FileStorage("Models/model_f4_roi3.yml", FileStorage.Mode.Read);
+            this.modelRoi3.Read(file3.GetNode("opencv_ml_svm"));
+
+            //Cargar roi1
+            this.modelRoi4 = new SVM();
+            FileStorage file4 = new FileStorage("Models/model_f4_roi4.yml", FileStorage.Mode.Read);
+            this.modelRoi4.Read(file4.GetNode("opencv_ml_svm"));
+
+
+            //Cargando información de personas
+            listPersons = new Dictionary<int, Person>();
+            //Probando base de datos
+            MySqlConnection connection = new MySqlConnection(this.MySqlConnectionString);
+            string query = "SELECT * FROM persona";
+            MySqlCommand cmd = new MySqlCommand(query, connection);
+            cmd.CommandTimeout = 60;
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    
+                    Person sujeto = new Person();
+                    sujeto.Nombre = reader["nombre_completo"].ToString();
+                    sujeto.NroVotos = 0;
+                    listPersons.Add(Int32.Parse(reader["etiqueta"].ToString()), sujeto);
+                }
+
+                MessageBox.Show("Modelos cargados..");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Query error:" + ex.Message);
+            }
         }
 
         //Fragmentación por 16
@@ -1125,7 +1197,7 @@ namespace Sistema_Reconocimiento_Facial
                         Person sujeto = listPersons[resultado];
                         Face face = faceDetected.ElementAt(numPerson);
                         //Pintar y etiquetar
-                        string nombre = listSearch[resultado];
+                        //string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
                         Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
                         this.sujetoIdentificado = sujeto.Nombre;
@@ -1215,6 +1287,138 @@ namespace Sistema_Reconocimiento_Facial
             modelRoi14 = this.trainingFragmentFactor16(dataRoi14Mat, labelTrain);
             modelRoi15 = this.trainingFragmentFactor16(dataRoi15Mat, labelTrain);
             modelRoi16 = this.trainingFragmentFactor16(dataRoi16Mat, labelTrain);
+
+            //Salvando modelos
+            modelRoi1.Save("Models/model_f16_roi1.yml");
+            modelRoi2.Save("Models/model_f16_roi2.yml");
+            modelRoi3.Save("Models/model_f16_roi3.yml");
+            modelRoi4.Save("Models/model_f16_roi4.yml");
+
+            modelRoi5.Save("Models/model_f16_roi5.yml");
+            modelRoi6.Save("Models/model_f16_roi6.yml");
+            modelRoi7.Save("Models/model_f16_roi7.yml");
+            modelRoi8.Save("Models/model_f16_roi8.yml");
+
+            modelRoi9.Save("Models/model_f16_roi9.yml");
+            modelRoi10.Save("Models/model_f16_roi10.yml");
+            modelRoi11.Save("Models/model_f16_roi11.yml");
+            modelRoi12.Save("Models/model_f16_roi12.yml");
+
+            modelRoi13.Save("Models/model_f16_roi13.yml");
+            modelRoi14.Save("Models/model_f16_roi14.yml");
+            modelRoi15.Save("Models/model_f16_roi15.yml");
+            modelRoi16.Save("Models/model_f16_roi16.yml");
+        }
+        public void loadDataBaseFactor16()
+        {
+            //Cargando modelos
+
+            //Cargar roi1
+            this.modelRoi1 = new SVM();
+            FileStorage file1 = new FileStorage("Models/model_f16_roi1.yml", FileStorage.Mode.Read);
+            this.modelRoi1.Read(file1.GetNode("opencv_ml_svm"));
+
+            //Cargar roi2
+            this.modelRoi2 = new SVM();
+            FileStorage file2 = new FileStorage("Models/model_f16_roi2.yml", FileStorage.Mode.Read);
+            this.modelRoi2.Read(file2.GetNode("opencv_ml_svm"));
+
+            //Cargar roi3
+            this.modelRoi3 = new SVM();
+            FileStorage file3 = new FileStorage("Models/model_f16_roi3.yml", FileStorage.Mode.Read);
+            this.modelRoi3.Read(file3.GetNode("opencv_ml_svm"));
+
+            //Cargar roi4
+            this.modelRoi4 = new SVM();
+            FileStorage file4 = new FileStorage("Models/model_f16_roi4.yml", FileStorage.Mode.Read);
+            this.modelRoi4.Read(file4.GetNode("opencv_ml_svm"));
+
+            //Cargar roi5
+            this.modelRoi5 = new SVM();
+            FileStorage file5 = new FileStorage("Models/model_f16_roi5.yml", FileStorage.Mode.Read);
+            this.modelRoi5.Read(file5.GetNode("opencv_ml_svm"));
+
+            //Cargar roi6
+            this.modelRoi6 = new SVM();
+            FileStorage file6 = new FileStorage("Models/model_f16_roi6.yml", FileStorage.Mode.Read);
+            this.modelRoi6.Read(file6.GetNode("opencv_ml_svm"));
+
+            //Cargar roi7
+            this.modelRoi7 = new SVM();
+            FileStorage file7 = new FileStorage("Models/model_f16_roi7.yml", FileStorage.Mode.Read);
+            this.modelRoi7.Read(file7.GetNode("opencv_ml_svm"));
+
+            //Cargar roi8
+            this.modelRoi8 = new SVM();
+            FileStorage file8 = new FileStorage("Models/model_f16_roi8.yml", FileStorage.Mode.Read);
+            this.modelRoi8.Read(file8.GetNode("opencv_ml_svm"));
+
+            //Cargar roi9
+            this.modelRoi9 = new SVM();
+            FileStorage file9 = new FileStorage("Models/model_f16_roi9.yml", FileStorage.Mode.Read);
+            this.modelRoi9.Read(file9.GetNode("opencv_ml_svm"));
+
+            //Cargar roi10
+            this.modelRoi10 = new SVM();
+            FileStorage file10 = new FileStorage("Models/model_f16_roi10.yml", FileStorage.Mode.Read);
+            this.modelRoi10.Read(file10.GetNode("opencv_ml_svm"));
+
+            //Cargar roi11
+            this.modelRoi11 = new SVM();
+            FileStorage file11 = new FileStorage("Models/model_f16_roi11.yml", FileStorage.Mode.Read);
+            this.modelRoi11.Read(file11.GetNode("opencv_ml_svm"));
+
+            //Cargar roi12
+            this.modelRoi12 = new SVM();
+            FileStorage file12 = new FileStorage("Models/model_f16_roi12.yml", FileStorage.Mode.Read);
+            this.modelRoi12.Read(file12.GetNode("opencv_ml_svm"));
+
+            //Cargar roi13
+            this.modelRoi13 = new SVM();
+            FileStorage file13 = new FileStorage("Models/model_f16_roi13.yml", FileStorage.Mode.Read);
+            this.modelRoi13.Read(file13.GetNode("opencv_ml_svm"));
+
+            //Cargar roi14
+            this.modelRoi14 = new SVM();
+            FileStorage file14 = new FileStorage("Models/model_f16_roi14.yml", FileStorage.Mode.Read);
+            this.modelRoi14.Read(file14.GetNode("opencv_ml_svm"));
+
+            //Cargar roi15
+            this.modelRoi15 = new SVM();
+            FileStorage file15 = new FileStorage("Models/model_f16_roi15.yml", FileStorage.Mode.Read);
+            this.modelRoi15.Read(file15.GetNode("opencv_ml_svm"));
+
+            //Cargar roi16
+            this.modelRoi16 = new SVM();
+            FileStorage file16 = new FileStorage("Models/model_f16_roi16.yml", FileStorage.Mode.Read);
+            this.modelRoi16.Read(file16.GetNode("opencv_ml_svm"));
+
+            //Cargando información de personas
+            listPersons = new Dictionary<int, Person>();
+            //Probando base de datos
+            MySqlConnection connection = new MySqlConnection(this.MySqlConnectionString);
+            string query = "SELECT * FROM persona";
+            MySqlCommand cmd = new MySqlCommand(query, connection);
+            cmd.CommandTimeout = 60;
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+
+                    Person sujeto = new Person();
+                    sujeto.Nombre = reader["nombre_completo"].ToString();
+                    sujeto.NroVotos = 0;
+                    listPersons.Add(Int32.Parse(reader["etiqueta"].ToString()), sujeto);
+                }
+
+                MessageBox.Show("Modelos cargados..");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Query error:" + ex.Message);
+            }
         }
 
         //Fragmentación por 64
@@ -1934,7 +2138,7 @@ namespace Sistema_Reconocimiento_Facial
                         Person sujeto = listPersons[resultado];
                         Face face = faceDetected.ElementAt(numPerson);
                         //Pintar y etiquetar
-                        string nombre = listSearch[resultado];
+                        //string nombre = listSearch[resultado];
                         CvInvoke.Rectangle(frameBgr, face.Roi, new MCvScalar(0, 0, 255));
                         Console.WriteLine("La muestra ingresada < {0} > fue identificada como < {1} >", this.sujetoDesconocido, sujeto.Nombre);
                         this.sujetoIdentificado = sujeto.Nombre;
@@ -2228,6 +2432,438 @@ namespace Sistema_Reconocimiento_Facial
             modelRoi62 = this.trainingFragmentFactor64(dataRoi62Mat, labelTrain);
             modelRoi63 = this.trainingFragmentFactor64(dataRoi63Mat, labelTrain);
             modelRoi64 = this.trainingFragmentFactor64(dataRoi64Mat, labelTrain);
+
+            //Salvando modelos
+            modelRoi1.Save("Models/model_f64_roi1.yml");
+            modelRoi2.Save("Models/model_f64_roi2.yml");
+            modelRoi3.Save("Models/model_f64_roi3.yml");
+            modelRoi4.Save("Models/model_f64_roi4.yml");
+                                           
+            modelRoi5.Save("Models/model_f64_roi5.yml");
+            modelRoi6.Save("Models/model_f64_roi6.yml");
+            modelRoi7.Save("Models/model_f64_roi7.yml");
+            modelRoi8.Save("Models/model_f64_roi8.yml");
+
+            modelRoi9.Save("Models/model_f64_roi9.yml");
+            modelRoi10.Save("Models/model_f64_roi10.yml");
+            modelRoi11.Save("Models/model_f64_roi11.yml");
+            modelRoi12.Save("Models/model_f64_roi12.yml");
+                                           
+            modelRoi13.Save("Models/model_f64_roi13.yml");
+            modelRoi14.Save("Models/model_f64_roi14.yml");
+            modelRoi15.Save("Models/model_f64_roi15.yml");
+            modelRoi16.Save("Models/model_f64_roi16.yml");
+
+            modelRoi17.Save("Models/model_f64_roi17.yml");
+            modelRoi18.Save("Models/model_f64_roi18.yml");
+            modelRoi19.Save("Models/model_f64_roi19.yml");
+            modelRoi20.Save("Models/model_f64_roi20.yml");
+
+            modelRoi21.Save("Models/model_f64_roi21.yml");
+            modelRoi22.Save("Models/model_f64_roi22.yml");
+            modelRoi23.Save("Models/model_f64_roi23.yml");
+            modelRoi24.Save("Models/model_f64_roi24.yml");
+
+            modelRoi25.Save("Models/model_f64_roi25.yml");
+            modelRoi26.Save("Models/model_f64_roi26.yml");
+            modelRoi27.Save("Models/model_f64_roi27.yml");
+            modelRoi28.Save("Models/model_f64_roi28.yml");
+
+            modelRoi29.Save("Models/model_f64_roi29.yml");
+            modelRoi30.Save("Models/model_f64_roi30.yml");
+            modelRoi31.Save("Models/model_f64_roi31.yml");
+            modelRoi32.Save("Models/model_f64_roi32.yml");
+
+            modelRoi33.Save("Models/model_f64_roi33.yml");
+            modelRoi34.Save("Models/model_f64_roi34.yml");
+            modelRoi35.Save("Models/model_f64_roi35.yml");
+            modelRoi36.Save("Models/model_f64_roi36.yml");
+
+            modelRoi37.Save("Models/model_f64_roi37.yml");
+            modelRoi38.Save("Models/model_f64_roi38.yml");
+            modelRoi39.Save("Models/model_f64_roi39.yml");
+            modelRoi40.Save("Models/model_f64_roi40.yml");
+
+            modelRoi41.Save("Models/model_f64_roi41.yml");
+            modelRoi42.Save("Models/model_f64_roi42.yml");
+            modelRoi43.Save("Models/model_f64_roi43.yml");
+            modelRoi44.Save("Models/model_f64_roi44.yml");
+
+            modelRoi45.Save("Models/model_f64_roi45.yml");
+            modelRoi46.Save("Models/model_f64_roi46.yml");
+            modelRoi47.Save("Models/model_f64_roi47.yml");
+            modelRoi48.Save("Models/model_f64_roi48.yml");
+
+            modelRoi49.Save("Models/model_f64_roi49.yml");
+            modelRoi50.Save("Models/model_f64_roi50.yml");
+            modelRoi51.Save("Models/model_f64_roi51.yml");
+            modelRoi52.Save("Models/model_f64_roi52.yml");
+
+            modelRoi53.Save("Models/model_f64_roi53.yml");
+            modelRoi54.Save("Models/model_f64_roi54.yml");
+            modelRoi55.Save("Models/model_f64_roi55.yml");
+            modelRoi56.Save("Models/model_f64_roi56.yml");
+
+            modelRoi57.Save("Models/model_f64_roi57.yml");
+            modelRoi58.Save("Models/model_f64_roi58.yml");
+            modelRoi59.Save("Models/model_f64_roi59.yml");
+            modelRoi60.Save("Models/model_f64_roi60.yml");
+
+            modelRoi61.Save("Models/model_f64_roi61.yml");
+            modelRoi62.Save("Models/model_f64_roi62.yml");
+            modelRoi63.Save("Models/model_f64_roi63.yml");
+            modelRoi64.Save("Models/model_f64_roi64.yml");
+        }
+        public void loadDataBaseFactor64()
+        {
+            //Cargando modelos
+
+            //Cargar roi1
+            this.modelRoi1 = new SVM();
+            FileStorage file1 = new FileStorage("Models/model_f64_roi1.yml", FileStorage.Mode.Read);
+            this.modelRoi1.Read(file1.GetNode("opencv_ml_svm"));
+
+            //Cargar roi2
+            this.modelRoi2 = new SVM();
+            FileStorage file2 = new FileStorage("Models/model_f64_roi2.yml", FileStorage.Mode.Read);
+            this.modelRoi2.Read(file2.GetNode("opencv_ml_svm"));
+
+            //Cargar roi3
+            this.modelRoi3 = new SVM();
+            FileStorage file3 = new FileStorage("Models/model_f64_roi3.yml", FileStorage.Mode.Read);
+            this.modelRoi3.Read(file3.GetNode("opencv_ml_svm"));
+
+            //Cargar roi4
+            this.modelRoi4 = new SVM();
+            FileStorage file4 = new FileStorage("Models/model_f64_roi4.yml", FileStorage.Mode.Read);
+            this.modelRoi4.Read(file4.GetNode("opencv_ml_svm"));
+
+            //Cargar roi5
+            this.modelRoi5 = new SVM();
+            FileStorage file5 = new FileStorage("Models/model_f64_roi5.yml", FileStorage.Mode.Read);
+            this.modelRoi5.Read(file5.GetNode("opencv_ml_svm"));
+
+            //Cargar roi6
+            this.modelRoi6 = new SVM();
+            FileStorage file6 = new FileStorage("Models/model_f64_roi6.yml", FileStorage.Mode.Read);
+            this.modelRoi6.Read(file6.GetNode("opencv_ml_svm"));
+
+            //Cargar roi7
+            this.modelRoi7 = new SVM();
+            FileStorage file7 = new FileStorage("Models/model_f64_roi7.yml", FileStorage.Mode.Read);
+            this.modelRoi7.Read(file7.GetNode("opencv_ml_svm"));
+
+            //Cargar roi8
+            this.modelRoi8 = new SVM();
+            FileStorage file8 = new FileStorage("Models/model_f64_roi8.yml", FileStorage.Mode.Read);
+            this.modelRoi8.Read(file8.GetNode("opencv_ml_svm"));
+
+            //Cargar roi9
+            this.modelRoi9 = new SVM();
+            FileStorage file9 = new FileStorage("Models/model_f64_roi9.yml", FileStorage.Mode.Read);
+            this.modelRoi9.Read(file9.GetNode("opencv_ml_svm"));
+
+            //Cargar roi10
+            this.modelRoi10 = new SVM();
+            FileStorage file10 = new FileStorage("Models/model_f64_roi10.yml", FileStorage.Mode.Read);
+            this.modelRoi10.Read(file10.GetNode("opencv_ml_svm"));
+
+            //Cargar roi11
+            this.modelRoi11 = new SVM();
+            FileStorage file11 = new FileStorage("Models/model_f64_roi11.yml", FileStorage.Mode.Read);
+            this.modelRoi11.Read(file11.GetNode("opencv_ml_svm"));
+
+            //Cargar roi12
+            this.modelRoi12 = new SVM();
+            FileStorage file12 = new FileStorage("Models/model_f64_roi12.yml", FileStorage.Mode.Read);
+            this.modelRoi12.Read(file12.GetNode("opencv_ml_svm"));
+
+            //Cargar roi13
+            this.modelRoi13 = new SVM();
+            FileStorage file13 = new FileStorage("Models/model_f64_roi13.yml", FileStorage.Mode.Read);
+            this.modelRoi13.Read(file13.GetNode("opencv_ml_svm"));
+
+            //Cargar roi14
+            this.modelRoi14 = new SVM();
+            FileStorage file14 = new FileStorage("Models/model_f64_roi14.yml", FileStorage.Mode.Read);
+            this.modelRoi14.Read(file14.GetNode("opencv_ml_svm"));
+
+            //Cargar roi15
+            this.modelRoi15 = new SVM();
+            FileStorage file15 = new FileStorage("Models/model_f64_roi15.yml", FileStorage.Mode.Read);
+            this.modelRoi15.Read(file15.GetNode("opencv_ml_svm"));
+
+            //Cargar roi16
+            this.modelRoi16 = new SVM();
+            FileStorage file16 = new FileStorage("Models/model_f64_roi16.yml", FileStorage.Mode.Read);
+            this.modelRoi16.Read(file16.GetNode("opencv_ml_svm"));
+
+            //Cargar roi17
+            this.modelRoi17 = new SVM();
+            FileStorage file17 = new FileStorage("Models/model_f64_roi17.yml", FileStorage.Mode.Read);
+            this.modelRoi17.Read(file17.GetNode("opencv_ml_svm"));
+
+            //Cargar roi18
+            this.modelRoi18 = new SVM();
+            FileStorage file18 = new FileStorage("Models/model_f64_roi18.yml", FileStorage.Mode.Read);
+            this.modelRoi18.Read(file18.GetNode("opencv_ml_svm"));
+
+            //Cargar roi19
+            this.modelRoi19 = new SVM();
+            FileStorage file19 = new FileStorage("Models/model_f64_roi19.yml", FileStorage.Mode.Read);
+            this.modelRoi19.Read(file19.GetNode("opencv_ml_svm"));
+
+            //Cargar roi20
+            this.modelRoi20 = new SVM();
+            FileStorage file20 = new FileStorage("Models/model_f64_roi20.yml", FileStorage.Mode.Read);
+            this.modelRoi20.Read(file20.GetNode("opencv_ml_svm"));
+
+            //Cargar roi21
+            this.modelRoi21 = new SVM();
+            FileStorage file21 = new FileStorage("Models/model_f64_roi21.yml", FileStorage.Mode.Read);
+            this.modelRoi21.Read(file21.GetNode("opencv_ml_svm"));
+
+            //Cargar roi22
+            this.modelRoi22 = new SVM();
+            FileStorage file22 = new FileStorage("Models/model_f64_roi22.yml", FileStorage.Mode.Read);
+            this.modelRoi22.Read(file22.GetNode("opencv_ml_svm"));
+
+            //Cargar roi23
+            this.modelRoi23 = new SVM();
+            FileStorage file23 = new FileStorage("Models/model_f64_roi23.yml", FileStorage.Mode.Read);
+            this.modelRoi23.Read(file23.GetNode("opencv_ml_svm"));
+
+            //Cargar roi24
+            this.modelRoi24 = new SVM();
+            FileStorage file24 = new FileStorage("Models/model_f64_roi24.yml", FileStorage.Mode.Read);
+            this.modelRoi24.Read(file24.GetNode("opencv_ml_svm"));
+
+            //Cargar roi25
+            this.modelRoi25 = new SVM();
+            FileStorage file25 = new FileStorage("Models/model_f64_roi25.yml", FileStorage.Mode.Read);
+            this.modelRoi25.Read(file25.GetNode("opencv_ml_svm"));
+
+            //Cargar roi26
+            this.modelRoi26 = new SVM();
+            FileStorage file26 = new FileStorage("Models/model_f64_roi26.yml", FileStorage.Mode.Read);
+            this.modelRoi26.Read(file26.GetNode("opencv_ml_svm"));
+
+            //Cargar roi27
+            this.modelRoi27 = new SVM();
+            FileStorage file27 = new FileStorage("Models/model_f64_roi27.yml", FileStorage.Mode.Read);
+            this.modelRoi27.Read(file27.GetNode("opencv_ml_svm"));
+
+            //Cargar roi28
+            this.modelRoi28 = new SVM();
+            FileStorage file28 = new FileStorage("Models/model_f64_roi28.yml", FileStorage.Mode.Read);
+            this.modelRoi28.Read(file28.GetNode("opencv_ml_svm"));
+
+            //Cargar roi29
+            this.modelRoi29 = new SVM();
+            FileStorage file29 = new FileStorage("Models/model_f64_roi29.yml", FileStorage.Mode.Read);
+            this.modelRoi29.Read(file29.GetNode("opencv_ml_svm"));
+
+            //Cargar roi30
+            this.modelRoi30 = new SVM();
+            FileStorage file30 = new FileStorage("Models/model_f64_roi30.yml", FileStorage.Mode.Read);
+            this.modelRoi30.Read(file30.GetNode("opencv_ml_svm"));
+
+            //Cargar roi31
+            this.modelRoi31 = new SVM();
+            FileStorage file31 = new FileStorage("Models/model_f64_roi31.yml", FileStorage.Mode.Read);
+            this.modelRoi31.Read(file31.GetNode("opencv_ml_svm"));
+
+            //Cargar roi32
+            this.modelRoi32 = new SVM();
+            FileStorage file32 = new FileStorage("Models/model_f64_roi32.yml", FileStorage.Mode.Read);
+            this.modelRoi32.Read(file32.GetNode("opencv_ml_svm"));
+
+            //Cargar roi33
+            this.modelRoi33 = new SVM();
+            FileStorage file33 = new FileStorage("Models/model_f64_roi33.yml", FileStorage.Mode.Read);
+            this.modelRoi33.Read(file33.GetNode("opencv_ml_svm"));
+
+            //Cargar roi34
+            this.modelRoi34 = new SVM();
+            FileStorage file34 = new FileStorage("Models/model_f64_roi34.yml", FileStorage.Mode.Read);
+            this.modelRoi34.Read(file34.GetNode("opencv_ml_svm"));
+
+            //Cargar roi35
+            this.modelRoi35 = new SVM();
+            FileStorage file35 = new FileStorage("Models/model_f64_roi35.yml", FileStorage.Mode.Read);
+            this.modelRoi35.Read(file35.GetNode("opencv_ml_svm"));
+
+            //Cargar roi36
+            this.modelRoi36 = new SVM();
+            FileStorage file36 = new FileStorage("Models/model_f64_roi36.yml", FileStorage.Mode.Read);
+            this.modelRoi36.Read(file36.GetNode("opencv_ml_svm"));
+
+            //Cargar roi37
+            this.modelRoi37 = new SVM();
+            FileStorage file37 = new FileStorage("Models/model_f64_roi37.yml", FileStorage.Mode.Read);
+            this.modelRoi37.Read(file37.GetNode("opencv_ml_svm"));
+
+            //Cargar roi38
+            this.modelRoi38 = new SVM();
+            FileStorage file38 = new FileStorage("Models/model_f64_roi38.yml", FileStorage.Mode.Read);
+            this.modelRoi38.Read(file38.GetNode("opencv_ml_svm"));
+
+            //Cargar roi39
+            this.modelRoi39 = new SVM();
+            FileStorage file39 = new FileStorage("Models/model_f64_roi39.yml", FileStorage.Mode.Read);
+            this.modelRoi39.Read(file39.GetNode("opencv_ml_svm"));
+
+            //Cargar roi40
+            this.modelRoi40 = new SVM();
+            FileStorage file40 = new FileStorage("Models/model_f64_roi40.yml", FileStorage.Mode.Read);
+            this.modelRoi40.Read(file40.GetNode("opencv_ml_svm"));
+
+            //Cargar roi41
+            this.modelRoi41 = new SVM();
+            FileStorage file41 = new FileStorage("Models/model_f64_roi41.yml", FileStorage.Mode.Read);
+            this.modelRoi41.Read(file41.GetNode("opencv_ml_svm"));
+
+            //Cargar roi42
+            this.modelRoi42 = new SVM();
+            FileStorage file42 = new FileStorage("Models/model_f64_roi42.yml", FileStorage.Mode.Read);
+            this.modelRoi42.Read(file42.GetNode("opencv_ml_svm"));
+
+            //Cargar roi43
+            this.modelRoi43 = new SVM();
+            FileStorage file43 = new FileStorage("Models/model_f64_roi43.yml", FileStorage.Mode.Read);
+            this.modelRoi43.Read(file43.GetNode("opencv_ml_svm"));
+
+            //Cargar roi44
+            this.modelRoi44 = new SVM();
+            FileStorage file44 = new FileStorage("Models/model_f64_roi44.yml", FileStorage.Mode.Read);
+            this.modelRoi44.Read(file44.GetNode("opencv_ml_svm"));
+
+            //Cargar roi45
+            this.modelRoi45 = new SVM();
+            FileStorage file45 = new FileStorage("Models/model_f64_roi45.yml", FileStorage.Mode.Read);
+            this.modelRoi45.Read(file45.GetNode("opencv_ml_svm"));
+
+            //Cargar roi46
+            this.modelRoi46 = new SVM();
+            FileStorage file46 = new FileStorage("Models/model_f64_roi46.yml", FileStorage.Mode.Read);
+            this.modelRoi46.Read(file46.GetNode("opencv_ml_svm"));
+
+            //Cargar roi47
+            this.modelRoi47 = new SVM();
+            FileStorage file47 = new FileStorage("Models/model_f64_roi47.yml", FileStorage.Mode.Read);
+            this.modelRoi47.Read(file47.GetNode("opencv_ml_svm"));
+
+            //Cargar roi48
+            this.modelRoi48 = new SVM();
+            FileStorage file48 = new FileStorage("Models/model_f64_roi48.yml", FileStorage.Mode.Read);
+            this.modelRoi48.Read(file48.GetNode("opencv_ml_svm"));
+
+            //Cargar roi49
+            this.modelRoi49 = new SVM();
+            FileStorage file49 = new FileStorage("Models/model_f64_roi49.yml", FileStorage.Mode.Read);
+            this.modelRoi49.Read(file49.GetNode("opencv_ml_svm"));
+
+            //Cargar roi50
+            this.modelRoi50 = new SVM();
+            FileStorage file50 = new FileStorage("Models/model_f64_roi50.yml", FileStorage.Mode.Read);
+            this.modelRoi50.Read(file50.GetNode("opencv_ml_svm"));
+
+            //Cargar roi51
+            this.modelRoi51 = new SVM();
+            FileStorage file51 = new FileStorage("Models/model_f64_roi51.yml", FileStorage.Mode.Read);
+            this.modelRoi51.Read(file51.GetNode("opencv_ml_svm"));
+
+            //Cargar roi52
+            this.modelRoi52 = new SVM();
+            FileStorage file52 = new FileStorage("Models/model_f64_roi52.yml", FileStorage.Mode.Read);
+            this.modelRoi52.Read(file52.GetNode("opencv_ml_svm"));
+
+            //Cargar roi53
+            this.modelRoi53 = new SVM();
+            FileStorage file53 = new FileStorage("Models/model_f64_roi53.yml", FileStorage.Mode.Read);
+            this.modelRoi53.Read(file53.GetNode("opencv_ml_svm"));
+
+            //Cargar roi54
+            this.modelRoi54 = new SVM();
+            FileStorage file54 = new FileStorage("Models/model_f64_roi54.yml", FileStorage.Mode.Read);
+            this.modelRoi54.Read(file54.GetNode("opencv_ml_svm"));
+
+            //Cargar roi55
+            this.modelRoi55 = new SVM();
+            FileStorage file55 = new FileStorage("Models/model_f64_roi55.yml", FileStorage.Mode.Read);
+            this.modelRoi55.Read(file55.GetNode("opencv_ml_svm"));
+
+            //Cargar roi56
+            this.modelRoi56 = new SVM();
+            FileStorage file56 = new FileStorage("Models/model_f64_roi56.yml", FileStorage.Mode.Read);
+            this.modelRoi56.Read(file56.GetNode("opencv_ml_svm"));
+
+            //Cargar roi57
+            this.modelRoi57 = new SVM();
+            FileStorage file57 = new FileStorage("Models/model_f64_roi57.yml", FileStorage.Mode.Read);
+            this.modelRoi57.Read(file57.GetNode("opencv_ml_svm"));
+
+            //Cargar roi58
+            this.modelRoi58 = new SVM();
+            FileStorage file58 = new FileStorage("Models/model_f64_roi58.yml", FileStorage.Mode.Read);
+            this.modelRoi58.Read(file58.GetNode("opencv_ml_svm"));
+
+            //Cargar roi59
+            this.modelRoi59 = new SVM();
+            FileStorage file59 = new FileStorage("Models/model_f64_roi59.yml", FileStorage.Mode.Read);
+            this.modelRoi59.Read(file59.GetNode("opencv_ml_svm"));
+
+            //Cargar roi60
+            this.modelRoi60 = new SVM();
+            FileStorage file60 = new FileStorage("Models/model_f64_roi60.yml", FileStorage.Mode.Read);
+            this.modelRoi60.Read(file60.GetNode("opencv_ml_svm"));
+
+            //Cargar roi61
+            this.modelRoi61 = new SVM();
+            FileStorage file61 = new FileStorage("Models/model_f64_roi61.yml", FileStorage.Mode.Read);
+            this.modelRoi61.Read(file61.GetNode("opencv_ml_svm"));
+
+            //Cargar roi62
+            this.modelRoi62 = new SVM();
+            FileStorage file62 = new FileStorage("Models/model_f64_roi62.yml", FileStorage.Mode.Read);
+            this.modelRoi62.Read(file62.GetNode("opencv_ml_svm"));
+
+            //Cargar roi63
+            this.modelRoi63 = new SVM();
+            FileStorage file63 = new FileStorage("Models/model_f64_roi63.yml", FileStorage.Mode.Read);
+            this.modelRoi63.Read(file63.GetNode("opencv_ml_svm"));
+
+            //Cargar roi64
+            this.modelRoi64 = new SVM();
+            FileStorage file64 = new FileStorage("Models/model_f64_roi64.yml", FileStorage.Mode.Read);
+            this.modelRoi64.Read(file64.GetNode("opencv_ml_svm"));
+
+            //Cargando información de personas
+            listPersons = new Dictionary<int, Person>();
+            //Probando base de datos
+            MySqlConnection connection = new MySqlConnection(this.MySqlConnectionString);
+            string query = "SELECT * FROM persona";
+            MySqlCommand cmd = new MySqlCommand(query, connection);
+            cmd.CommandTimeout = 60;
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+
+                    Person sujeto = new Person();
+                    sujeto.Nombre = reader["nombre_completo"].ToString();
+                    sujeto.NroVotos = 0;
+                    listPersons.Add(Int32.Parse(reader["etiqueta"].ToString()), sujeto);
+                }
+
+                MessageBox.Show("Modelos cargados..");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Query error:" + ex.Message);
+            }
         }
 
         /********** MÉTODOS EXTRAS *************/
@@ -2440,6 +3076,32 @@ namespace Sistema_Reconocimiento_Facial
 
         private void btnEntrenar_Click(object sender, EventArgs e)
         {
+            //Eliminar modelos existentes
+            MySqlConnection connection = new MySqlConnection(this.MySqlConnectionString);
+            string query = "DELETE FROM persona";
+            MySqlCommand cmd = new MySqlCommand(query, connection);
+            cmd.CommandTimeout = 60;
+            try
+            {
+                connection.Open();
+                MySqlDataReader reader = cmd.ExecuteReader();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Query error:" + ex.Message);
+            }
+
+            DirectoryInfo path = new DirectoryInfo("Models");
+            FileInfo[] files = GetFilesByExtensions(path, ".yml","txt").ToArray();
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                FileInfo file = files[i];
+                myComputer.FileSystem.DeleteFile(file.FullName);
+            }
+
+
+
             string pathOrigin = tbRutaMuestrasEntrenamiento.Text;
 
             loadDatatraining(ref dataTrain, ref labelTrain, @pathOrigin);
@@ -2585,6 +3247,21 @@ namespace Sistema_Reconocimiento_Facial
         private void btnDetenerReconocimiento_Click(object sender, EventArgs e)
         {
             this.isWorking = false;
+        }
+
+        private void btnCagarModelosFactor4_Click(object sender, EventArgs e)
+        {
+            this.loadDataBaseFactor4();
+        }
+
+        private void btnCagarModelosFactor16_Click(object sender, EventArgs e)
+        {
+            this.loadDataBaseFactor16();
+        }
+
+        private void btnCagarModelosFactor64_Click(object sender, EventArgs e)
+        {
+            this.loadDataBaseFactor64();
         }
     }
 }

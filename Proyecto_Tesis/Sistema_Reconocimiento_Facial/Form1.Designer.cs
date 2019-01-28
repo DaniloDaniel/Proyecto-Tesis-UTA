@@ -31,6 +31,9 @@
             this.pbImagenOriginal = new System.Windows.Forms.PictureBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.btnDetenerReconocimiento = new System.Windows.Forms.Button();
             this.btnIniciarReconocimiento = new System.Windows.Forms.Button();
             this.btnConectarCamara = new System.Windows.Forms.Button();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
@@ -92,12 +95,14 @@
             this.btnSeleccionarMuestrasTest = new System.Windows.Forms.Button();
             this.tbRutaMuetrasTest = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
-            this.btnDetenerReconocimiento = new System.Windows.Forms.Button();
-            this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.btnCagarModelosFactor4 = new System.Windows.Forms.Button();
+            this.btnCagarModelosFactor16 = new System.Windows.Forms.Button();
+            this.btnCagarModelosFactor64 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            this.groupBox6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox5.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -105,8 +110,6 @@
             this.tabPage3.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
-            this.groupBox6.SuspendLayout();
             this.SuspendLayout();
             // 
             // pbImagenOriginal
@@ -143,6 +146,34 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Vivo";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.dataGridView1);
+            this.groupBox6.Location = new System.Drawing.Point(662, 268);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(348, 263);
+            this.groupBox6.TabIndex = 7;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "Personas Encontradas";
+            // 
+            // dataGridView1
+            // 
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Location = new System.Drawing.Point(6, 31);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.Size = new System.Drawing.Size(336, 226);
+            this.dataGridView1.TabIndex = 6;
+            // 
+            // btnDetenerReconocimiento
+            // 
+            this.btnDetenerReconocimiento.Location = new System.Drawing.Point(916, 205);
+            this.btnDetenerReconocimiento.Name = "btnDetenerReconocimiento";
+            this.btnDetenerReconocimiento.Size = new System.Drawing.Size(94, 40);
+            this.btnDetenerReconocimiento.TabIndex = 5;
+            this.btnDetenerReconocimiento.Text = "&Detener Reconocimiento";
+            this.btnDetenerReconocimiento.UseVisualStyleBackColor = true;
+            this.btnDetenerReconocimiento.Click += new System.EventHandler(this.btnDetenerReconocimiento_Click);
             // 
             // btnIniciarReconocimiento
             // 
@@ -251,6 +282,9 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.btnCagarModelosFactor64);
+            this.tabPage2.Controls.Add(this.btnCagarModelosFactor16);
+            this.tabPage2.Controls.Add(this.btnCagarModelosFactor4);
             this.tabPage2.Controls.Add(this.groupBox2);
             this.tabPage2.Controls.Add(this.btnEntrenar);
             this.tabPage2.Controls.Add(this.groupBox1);
@@ -262,7 +296,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(937, 603);
+            this.tabPage2.Size = new System.Drawing.Size(1026, 603);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Entrenamiento";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -350,7 +384,7 @@
             // 
             // btnEntrenar
             // 
-            this.btnEntrenar.Location = new System.Drawing.Point(403, 431);
+            this.btnEntrenar.Location = new System.Drawing.Point(297, 383);
             this.btnEntrenar.Name = "btnEntrenar";
             this.btnEntrenar.Size = new System.Drawing.Size(75, 23);
             this.btnEntrenar.TabIndex = 6;
@@ -543,7 +577,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(937, 603);
+            this.tabPage3.Size = new System.Drawing.Size(1026, 603);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Prueba Estática";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -734,33 +768,35 @@
             this.label9.TabIndex = 3;
             this.label9.Text = "Ruta muestras test:";
             // 
-            // btnDetenerReconocimiento
+            // btnCagarModelosFactor4
             // 
-            this.btnDetenerReconocimiento.Location = new System.Drawing.Point(916, 205);
-            this.btnDetenerReconocimiento.Name = "btnDetenerReconocimiento";
-            this.btnDetenerReconocimiento.Size = new System.Drawing.Size(94, 40);
-            this.btnDetenerReconocimiento.TabIndex = 5;
-            this.btnDetenerReconocimiento.Text = "&Detener Reconocimiento";
-            this.btnDetenerReconocimiento.UseVisualStyleBackColor = true;
-            this.btnDetenerReconocimiento.Click += new System.EventHandler(this.btnDetenerReconocimiento_Click);
+            this.btnCagarModelosFactor4.Location = new System.Drawing.Point(124, 511);
+            this.btnCagarModelosFactor4.Name = "btnCagarModelosFactor4";
+            this.btnCagarModelosFactor4.Size = new System.Drawing.Size(104, 47);
+            this.btnCagarModelosFactor4.TabIndex = 11;
+            this.btnCagarModelosFactor4.Text = "Cargar Modelos Factor 4";
+            this.btnCagarModelosFactor4.UseVisualStyleBackColor = true;
+            this.btnCagarModelosFactor4.Click += new System.EventHandler(this.btnCagarModelosFactor4_Click);
             // 
-            // dataGridView1
+            // btnCagarModelosFactor16
             // 
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Location = new System.Drawing.Point(6, 31);
-            this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(336, 226);
-            this.dataGridView1.TabIndex = 6;
+            this.btnCagarModelosFactor16.Location = new System.Drawing.Point(268, 511);
+            this.btnCagarModelosFactor16.Name = "btnCagarModelosFactor16";
+            this.btnCagarModelosFactor16.Size = new System.Drawing.Size(104, 47);
+            this.btnCagarModelosFactor16.TabIndex = 12;
+            this.btnCagarModelosFactor16.Text = "Cargar Modelos Factor 16";
+            this.btnCagarModelosFactor16.UseVisualStyleBackColor = true;
+            this.btnCagarModelosFactor16.Click += new System.EventHandler(this.btnCagarModelosFactor16_Click);
             // 
-            // groupBox6
+            // btnCagarModelosFactor64
             // 
-            this.groupBox6.Controls.Add(this.dataGridView1);
-            this.groupBox6.Location = new System.Drawing.Point(662, 268);
-            this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(348, 263);
-            this.groupBox6.TabIndex = 7;
-            this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "Personas Encontradas";
+            this.btnCagarModelosFactor64.Location = new System.Drawing.Point(413, 511);
+            this.btnCagarModelosFactor64.Name = "btnCagarModelosFactor64";
+            this.btnCagarModelosFactor64.Size = new System.Drawing.Size(104, 47);
+            this.btnCagarModelosFactor64.TabIndex = 13;
+            this.btnCagarModelosFactor64.Text = "Cargar Modelos Factor 64";
+            this.btnCagarModelosFactor64.UseVisualStyleBackColor = true;
+            this.btnCagarModelosFactor64.Click += new System.EventHandler(this.btnCagarModelosFactor64_Click);
             // 
             // Form1
             // 
@@ -773,6 +809,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.pbImagenOriginal)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
+            this.groupBox6.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             this.tabPage2.ResumeLayout(false);
@@ -787,8 +825,6 @@
             this.groupBox4.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
-            this.groupBox6.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -861,6 +897,9 @@
         private System.Windows.Forms.Button btnDetenerReconocimiento;
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.Button btnCagarModelosFactor64;
+        private System.Windows.Forms.Button btnCagarModelosFactor16;
+        private System.Windows.Forms.Button btnCagarModelosFactor4;
     }
 }
 
