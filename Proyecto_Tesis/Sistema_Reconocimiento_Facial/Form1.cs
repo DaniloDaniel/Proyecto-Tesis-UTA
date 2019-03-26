@@ -336,6 +336,7 @@ namespace Sistema_Reconocimiento_Facial
         private VideoWriter VideoW;
         private Boolean isRecording = false;
 
+        public int countCapturesManual = 0;
         public Form1()
         {
             InitializeComponent();
@@ -2700,7 +2701,7 @@ namespace Sistema_Reconocimiento_Facial
                 string strConnection = "rtsp://" + user + ":" + pass + "@" + ip + ":" + port + "/Streaming/Channels/101/";
                 //_capture = new VideoCapture("rtsp://admin:1234.abc@192.168.1.64:554/Streaming/Channels/102/");
                 //this._capture = new VideoCapture(strConnection);
-                this._capture = new VideoCapture(@"D:\temp1.mp4");
+                this._capture = new VideoCapture();
                 _capture.ImageGrabbed += ProcessFrame;
                 _capture.Start();
                 _frame = new Mat();
@@ -2731,13 +2732,17 @@ namespace Sistema_Reconocimiento_Facial
         {
             try
             {
+                this.countCapturesManual += 1;
+                string directorio = "D:\\Muestras 640x360 v2\\Danilo_Gonzalez\\Danilo_Gonzalez_";
                 Image<Bgr, Byte> captura = this._frame.ToImage<Bgr, Byte>();
-                SaveFileDialog dialog = new SaveFileDialog();
-                dialog.Filter = "JPG(*.JPG)|*.jpg";
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    captura.Save(dialog.FileName);
-                }
+                //SaveFileDialog dialog = new SaveFileDialog();
+                //dialog.Filter = "JPG(*.JPG)|*.jpg";
+                //if (dialog.ShowDialog() == DialogResult.OK)
+                //{
+                //    captura.Save(dialog.FileName);
+                //}
+                string path = directorio + this.countCapturesManual.ToString() + ".jpg";
+                captura.Save(@path);
             }
             catch(Exception ex)
             {
